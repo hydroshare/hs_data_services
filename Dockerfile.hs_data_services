@@ -1,0 +1,54 @@
+# HydroShare Data Services 1.0.0
+# Django 3.0.1
+
+
+FROM ubuntu:18.04
+
+
+MAINTAINER Kenneth Lippold kjlippold@gmail.com
+
+
+# Apt Setup ----------------------------------------------------------------------------------------------#
+
+RUN apt-get update -y
+RUN apt-get upgrade -y
+RUN apt-get install wget vim sudo nginx supervisor -y
+
+
+# Create dsuser user --------------------------------------------------------------------------------------#
+
+RUN adduser --disabled-password --gecos '' dsuser
+RUN adduser dsuser sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER dsuser
+
+ENV DS_HOME /home/dsuser
+WORKDIR $DS_HOME
+RUN chmod a+rwx $DS_HOME
+
+
+# Place Application Files --------------------------------------------------------------------------------#
+
+RUN sudo mkdir hs_data_services
+
+COPY environment.yml $DS_HOME
+COPY hs_data_services/ $DS_HOME/hs_data_services
+COPY startup.sh $DS_HOME
+COPY hs_data_services.conf /etc/nginx/conf.d/
+
+RUN sudo chown -R dsuser $DS_HOME/hs_data_services
+
+
+# Setup Conda Environment --------------------------------------------------------------------------------#
+
+RUN wget https://repo.continuum.io/miniconda/Miniconda2-4.5.12-Linux-x86_64.sh
+RUN bash Miniconda2-4.5.12-Linux-x86_64.sh -b
+RUN rm Miniconda2-4.5.12-Linux-x86_64.sh
+
+ENV PATH /home/dsuser/miniconda2/bin:$PATH
+
+RUN conda update conda
+
+RUN conda env create -f environment.yml
+RUN echo "source activate data_services" > ~/.bashrc
