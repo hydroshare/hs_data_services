@@ -7,10 +7,12 @@ services:
     image: oscarfonts/geoserver:2.17.3
     environment: 
       - CUSTOM_UID=20022
-    # volumes:
+      - GEOSERVER_CSRF_WHITELIST=hydroshare.org
+    volumes:
+      - ./conf/geoserver/startup.sh:/usr/local/bin/start.sh
       # - ./conf/geoserver/global.xml:/var/local/geoserver/global.xml
       # - ./conf/geoserver/rest.properties:/var/local/geoserver/security/rest.properties
-      #- ./irods_vault:/var/local/geoserver/irods:ro
+      # - ./irods_vault:/var/local/geoserver/irods:ro
     ports:
       - 8080:8080
     networks:
