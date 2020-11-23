@@ -10,7 +10,7 @@ services:
       - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_HOST_URL}}
     volumes:
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh
-      - {{IRODS_HOST_DIRECTORY}}:/var/local/geoserver/irods:ro
+      - /projects:/projects:ro
     networks:
       - data_services_network
 
@@ -61,7 +61,7 @@ services:
       - 8000:80
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
-      - ./static:/static
+      - /static:/static
     networks:
       - data_services_network
     depends_on:

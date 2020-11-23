@@ -39,8 +39,8 @@ DATABASES = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/hs_data_services/'
-STATIC_ROOT = '/static/hs_data_services/'
+STATIC_URL = '/static/his/'
+STATIC_ROOT = '/static/his/'
 
 PROXY_BASE_URL = {{DATA_SERVICES_URL}}
 
