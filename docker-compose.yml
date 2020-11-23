@@ -6,22 +6,11 @@ services:
   geoserver:
     image: oscarfonts/geoserver:2.14.1
     environment: 
-      - CUSTOM_UID=20022
-      - GEOSERVER_CSRF_WHITELIST=kens-macbook-pro.local
+      - CUSTOM_UID={{IRODS_ACCESS_UID}}
+      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_HOST_URL}}
     volumes:
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh
-      - /Users/klippold/Desktop/hydroshare_dev/irods_vault/iRODS/Vault/home/:/var/local/geoserver/irods:ro
-    networks:
-      - data_services_network
-
-  postgres:
-    image: postgres:12.3-alpine
-    environment:
-      - POSTGRES_PASSWORD=default
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    ports:
-      - 5432:5432
+      - {{IRODS_HOST_DIRECTORY}}:/var/local/geoserver/irods:ro
     networks:
       - data_services_network
 
@@ -48,8 +37,6 @@ services:
       - ./static:/static
     networks:
       - data_services_network
-    depends_on:
-      - postgres
 
   celery-worker:
     build: .
@@ -57,7 +44,6 @@ services:
     networks:
       - data_services_network
     depends_on:
-      - postgres
       - redis
 
   celery-beat:
@@ -66,14 +52,13 @@ services:
     networks:
       - data_services_network
     depends_on:
-      - postgres
       - redis
       - celery-worker
 
   nginx:
     image: nginx:1.19
     ports:
-      - 80:80
+      - 8000:80
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
       - ./static:/static
@@ -88,7 +73,3 @@ services:
 networks:
   data_services_network:
     driver: bridge
-
-
-volumes:
-  postgres_data:
