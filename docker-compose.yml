@@ -4,89 +4,85 @@ version: '3'
 services:
 
   geoserver:
-    image: oscarfonts/geoserver:2.17.3
+    image: oscarfonts/geoserver:2.14.1
     environment: 
       - CUSTOM_UID=20022
-      - GEOSERVER_CSRF_WHITELIST=hydroshare.org
+      - GEOSERVER_CSRF_WHITELIST=kens-macbook-pro.local
     volumes:
-      - ./conf/geoserver/startup.sh:/usr/local/bin/start.sh
-      # - ./conf/geoserver/global.xml:/var/local/geoserver/global.xml
-      # - ./conf/geoserver/rest.properties:/var/local/geoserver/security/rest.properties
-      # - ./irods_vault:/var/local/geoserver/irods:ro
-    ports:
-      - 8080:8080
+      - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh
+      - /Users/klippold/Desktop/hydroshare_dev/irods_vault/iRODS/Vault/home/:/var/local/geoserver/irods:ro
     networks:
       - data_services_network
 
-  # postgres:
-  #   image: postgres:12.3-alpine
-  #   environment:
-  #     - POSTGRES_PASSWORD=default
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data/
-  #   ports:
-  #     - 5432:5432
-  #   networks:
-  #     - data_services_network
+  postgres:
+    image: postgres:12.3-alpine
+    environment:
+      - POSTGRES_PASSWORD=default
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    networks:
+      - data_services_network
 
-  # redis:
-  #   image: redis:6.0.4-alpine
-  #   networks:
-  #     - data_services_network
+  redis:
+    image: redis:6.0.4-alpine
+    networks:
+      - data_services_network
 
-  # flower:  
-  #   image: mher/flower:latest
-  #   environment:
-  #     - CELERY_BROKER_URL=redis://redis:6379/0
-  #     - FLOWER_PORT=8040
-  #     - FLOWER_URL_PREFIX=flower
-  #   networks:
-  #     - data_services_network
-  #   depends_on:
-  #     - redis
+  flower:  
+    image: mher/flower:0.9.5
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=8040
+      - FLOWER_URL_PREFIX=flower
+    networks:
+      - data_services_network
+    depends_on:
+      - redis
 
-  # gunicorn:
-  #   build: .
-  #   command: /usr/bin/supervisord -c /home/windfish/conf/gunicorn/gunicorn.conf
-  #   volumes:
-  #     - ./static:/static
-  #   networks:
-  #     - data_services_network
-  #   depends_on:
-  #     - postgres
+  gunicorn:
+    build: .
+    command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
+    volumes:
+      - ./static:/static
+    networks:
+      - data_services_network
+    depends_on:
+      - postgres
 
-  # celery-worker:
-  #   build: .
-  #   command: /usr/bin/supervisord -c /home/windfish/conf/celery-worker/celery_worker.conf
-  #   networks:
-  #     - data_services_network
-  #   depends_on:
-  #     - postgres
-  #     - redis
+  celery-worker:
+    build: .
+    command: /usr/bin/supervisord -c /home/dsuser/conf/celery-worker/celery_worker.conf
+    networks:
+      - data_services_network
+    depends_on:
+      - postgres
+      - redis
 
-  # celery-beat:
-  #   build: .
-  #   command: /usr/bin/supervisord -c /home/windfish/conf/celery-beat/celery_beat.conf
-  #   networks:
-  #     - data_services_network
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  #     - celery-worker
+  celery-beat:
+    build: .
+    command: /usr/bin/supervisord -c /home/dsuser/conf/celery-beat/celery_beat.conf
+    networks:
+      - data_services_network
+    depends_on:
+      - postgres
+      - redis
+      - celery-worker
 
   nginx:
     image: nginx:1.19
     ports:
-      - 8000:80
+      - 80:80
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
-      # - ./static:/static
+      - ./static:/static
     networks:
       - data_services_network
     depends_on:
-      # - gunicorn
+      - gunicorn
       - geoserver
-      # - flower
+      - flower
 
 
 networks:

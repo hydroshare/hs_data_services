@@ -1,0 +1,5 @@
+irods_vault/
+static/
+db.sqlite3
+local_settings.py
+.DS_Store

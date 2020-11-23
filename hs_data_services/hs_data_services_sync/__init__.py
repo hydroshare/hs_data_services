@@ -1,0 +1,1 @@
+default_app_config = 'hs_data_services_sync.apps.HsDataServicesSyncConfig'

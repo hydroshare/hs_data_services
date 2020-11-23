@@ -12,7 +12,7 @@ MAINTAINER Kenneth Lippold kjlippold@gmail.com
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
-RUN apt-get install wget vim sudo nginx supervisor -y
+RUN apt-get install wget vim sudo supervisor -y
 
 
 # Create dsuser user --------------------------------------------------------------------------------------#
@@ -32,12 +32,12 @@ RUN chmod a+rwx $DS_HOME
 
 RUN sudo mkdir hs_data_services
 
-COPY environment.yml $DS_HOME
 COPY hs_data_services/ $DS_HOME/hs_data_services
-COPY startup.sh $DS_HOME
-COPY hs_data_services.conf /etc/nginx/conf.d/
+COPY conf/ $DS_HOME/conf
 
+RUN sudo chmod -R +x $DS_HOME/conf
 RUN sudo chown -R dsuser $DS_HOME/hs_data_services
+RUN sudo chown -R dsuser $DS_HOME/conf
 
 
 # Setup Conda Environment --------------------------------------------------------------------------------#
@@ -50,5 +50,5 @@ ENV PATH /home/dsuser/miniconda2/bin:$PATH
 
 RUN conda update conda
 
-RUN conda env create -f environment.yml
-RUN echo "source activate data_services" > ~/.bashrc
+RUN conda env create -f $DS_HOME/hs_data_services/environment.yml
+RUN echo "source activate hs_data_services" > ~/.bashrc
