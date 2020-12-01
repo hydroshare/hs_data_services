@@ -24,7 +24,7 @@ Add the following settings to local_settings.py:
 * {{GEOSERVER_REST_URL}}    - GeoServer's REST URL e.g. 'https://geoserver.hydroshare.org/geoserver/rest'
 * {{GEOSERVER_USERNAME}}    - Username for GeoServer. Default is 'admin'
 * {{GEOSERVER_PASSWORD}}    - Password for GeoServer. Default is 'geoserver'. Change in production.
-* {{IRODS_LOCAL_DIRECTORY}} - Local GeoServer path to iRODS data. Default is '/var/local/geoserver/irods'
+* {{IRODS_LOCAL_DIRECTORY}} - Local GeoServer path to iRODS data. Default base path is '/var/local/geoserver/irods'
 * {{GEOSERVER_NAMESPACE}}   - GeoServer namespace for workspaces e.g. 'HS'
 
 ##### Edit Docker settings:
@@ -51,7 +51,7 @@ By default, all services will be exposed locally on port 8000.
 
 ##### Post-Installation steps:
 
-Login to Django at {host_url}/his/admin with default username and password: 'admin' and 'default'
+Log in to Django at {host_url}/his/admin with default username and password: 'admin' and 'default'
 From the admin settings page, change the admin password.
 Create a new authentication token.
 
@@ -61,10 +61,10 @@ In Global Settings, change the Proxy Base URL to '{host_url}/geoserver'
 From this site, you may also update the contact information provided by GeoServer.
 
 Update or add the following settings to HydroShare:
-* HSWS_URL -  '{host_url}/his/services/update'
-* HSWS_API_TOKEN - This is the Django authentication token you created earlier.
-* HSWS_TIMOUT - This can be fairly short e.g. 10
-* HSWS_ACTIVATED - True
+* HSWS_URL                  - '{host_url}/his/services/update'
+* HSWS_API_TOKEN            - This is the Django authentication token you created earlier.
+* HSWS_TIMEOUT              - This can be fairly short e.g. 10
+* HSWS_ACTIVATED            - True or False
 
 ## Built With
 

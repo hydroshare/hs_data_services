@@ -1,5 +1,6 @@
 irods_vault/
 static/
+__pycache__/
 local_settings.py
 .DS_Store
 *.pyc

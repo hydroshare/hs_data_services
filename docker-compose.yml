@@ -6,8 +6,8 @@ services:
   geoserver:
     image: oscarfonts/geoserver:2.14.1
     environment: 
-      - CUSTOM_UID={{IRODS_ACCESS_UID}}
-      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_HOST_URL}}
+      - CUSTOM_UID={{IRODS_ACCESS_UID}}                        # A user ID on the host with read permissions to the iRODS directory
+      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_HOST_URL}}       # e.g. hydroshare.org
     volumes:
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh
       - /projects:/projects:ro
