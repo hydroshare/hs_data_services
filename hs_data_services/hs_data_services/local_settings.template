@@ -58,7 +58,7 @@ DATA_SERVICES = {
         'URL': {{GEOSERVER_REST_URL}},            # e.g. "https://geoserver-beta.hydroshare.org/geoserver/rest"
         'USER': {{GEOSERVER_USERNAME}},
         'PASSWORD': {{GEOSERVER_PASSWORD}},
-        'IRODS_DIR': {{IRODS_LOCAL_DIRECTORY}},   # e.g. "/var/local/geoserver/irods/hydroshare/vaults/betaProxy/home/betaHydroProxy"
+        'IRODS_DIR': {{IRODS_LOCAL_DIRECTORY}},   # e.g. "/projects/hydroshare/vaults/hydrotest/home/betaDataProxy"
         'NAMESPACE': {{GEOSERVER_NAMESPACE}}      # e.g. "HS"
     }
 }

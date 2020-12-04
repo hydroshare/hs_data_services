@@ -8,7 +8,7 @@ source activate hs_data_services
 
 echo Collecting Static Files
 cd /home/dsuser/hs_data_services
-sudo chmod -R 757 static
+sudo chmod -R 757 /static
 python manage.py collectstatic --noinput
 
 echo Making Migrations

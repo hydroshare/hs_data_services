@@ -15,8 +15,9 @@ These instructions will help you install and run this application in a productio
 
 ##### Edit Django settings:
 
-Rename hs_data_services/hs_data_services/hs_data_services/local_settings.template to local_settings.py
-Add the following settings to local_settings.py:
+Rename hs_data_services/hs_data_services/hs_data_services/local_settings.template to local_settings.py.
+
+Edit the following settings in local_settings.py:
 * {{HYDROSHARE_HOST_URL}}   - The host URL for HydroShare e.g. 'hydroshare.org'
 * {{SECRET_KEY}}            - A secret key for the Django app.
 * {{DATA_SERVICES_URL}}     - The data services URL e.g. 'https://geoserver.hydroshare.org/his'
@@ -24,7 +25,7 @@ Add the following settings to local_settings.py:
 * {{GEOSERVER_REST_URL}}    - GeoServer's REST URL e.g. 'https://geoserver.hydroshare.org/geoserver/rest'
 * {{GEOSERVER_USERNAME}}    - Username for GeoServer. Default is 'admin'
 * {{GEOSERVER_PASSWORD}}    - Password for GeoServer. Default is 'geoserver'. Change in production.
-* {{IRODS_LOCAL_DIRECTORY}} - Local GeoServer path to iRODS data. Default base path is '/var/local/geoserver/irods'
+* {{IRODS_LOCAL_DIRECTORY}} - Local GeoServer path to iRODS data.
 * {{GEOSERVER_NAMESPACE}}   - GeoServer namespace for workspaces e.g. 'HS'
 
 ##### Edit Docker settings:
@@ -46,7 +47,7 @@ Run the following command to run the Docker containers:
 $ sudo docker-compose up -d
 ```
 
-By default, all services will be exposed locally on port 8000.
+By default, all services will be exposed locally on port 8000 and static files will be located in /static/his/.
 
 ##### Post-Installation steps:
 
