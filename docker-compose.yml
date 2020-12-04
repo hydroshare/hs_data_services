@@ -34,7 +34,7 @@ services:
     build: .
     command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
     volumes:
-      - ./static:/static
+      - /static:/static
     networks:
       - data_services_network
 

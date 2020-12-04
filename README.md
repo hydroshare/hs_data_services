@@ -33,7 +33,6 @@ Edit the following settings in hs_data_services/docker-compose.yml
 
 * {{IRODS_ACCESS_UID}}      - The UID of a user on the host system with iRODS read access.
 * {{HYDROSHARE_HOST_URL}}   - The host URL for HydroShare e.g. 'hydroshare.org'
-* {{IRODS_HOST_DIRECTORY}}  - The host directory for iRODS. This should point to the directory containing resource folders.
 
 ##### Start Docker containers:
 
