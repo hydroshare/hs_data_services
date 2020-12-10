@@ -7,10 +7,10 @@ services:
     image: oscarfonts/geoserver:2.14.1
     environment: 
       - CUSTOM_UID={{IRODS_ACCESS_UID}}                        # A user ID on the host with read permissions to the iRODS directory
-      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_HOST_URL}}       # e.g. hydroshare.org
+      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}         # e.g. hydroshare.org
     volumes:
-      - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh
-      - /projects:/projects:ro
+      - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
+      - /projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
     networks:
       - data_services_network
 
@@ -34,7 +34,7 @@ services:
     build: .
     command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
     volumes:
-      - /static:/static
+      - /static:/static                                        # Static files will be stored locally at root.
     networks:
       - data_services_network
 
@@ -58,10 +58,10 @@ services:
   nginx:
     image: nginx:1.19
     ports:
-      - 8000:80
+      - 8000:80                                                # Expose all services locally on port 8000
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
-      - /static:/static
+      - /static:/static                                        # Static files will be stored locally at root.
     networks:
       - data_services_network
     depends_on:
