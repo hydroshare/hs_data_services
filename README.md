@@ -69,6 +69,18 @@ Update or add the following settings to HydroShare:
 
 Once everything is set up, HydroShare should start sending update requests to this data services app. You can check that this app is receiving those requests by going to {host_url}/flower and clicking on 'Tasks'. You can test it manually by sending a POST request to {host_url}/his/services/update/{resource_id}/ and adding {'Authorization': 'Token HSWS_API_TOKEN'} to the request's headers.
 
+##### Troubleshooting steps:
+
+After following the instructions above, if GeoServer isn't working as expected, try the following steps:
+
+1. Check {host_url}/flower to make sure the server is receiving resource registration requests from HydroShare. Under the 'tasks' tab there should be an update_data_services_task for each request received from HydroShare. If these tasks aren't appearing, there's a communication issue between HydroShare and this service. This could be due to the HydroShare HSWS settings not being correct, or an issue with the GeoServer NGINX setup.
+
+2. You can rule out other issues by manually sending a registration request to GeoServer. Make sure the resource you want to test is ready and made public. Use register_resource_test.ipynb to manually send an update request to this service. After sending the request, if you still don't see an update_data_services_task, double check your URLs and authentication token settings on HydroShare. If you see the task and the layers are visible on the GeoServer layer preview page, there's a HydroShare communication issue, but everything else is working. If the layers are not visible on GeoServer, there's an issue with the GeoServer setup.
+
+3. Through the GeoServer UI, you can try manually creating a GeoServer layer. From the GeoServer main page, log in and click 'Stores' and then 'Add new Store'. Click 'Shapefile' or 'GeoTIFF', depending on what type of layer you're testing. From there, click 'Browse' under 'Connection Parameters'. Select '/' from the dropdown, and you should see 'projects' in the directory (or the name of the volume you mounted into the container). From there, you should be able to navigate to your shapefile or GeoTIFF (you'll need to know where it is). If a directory appears empty when you know there's data in it, there's a permissions issue with the volume and the GeoServer user does not have permission to read that directory. You'll need to make sure the GeoServer user ID you picked earlier matches the user ID of a user on the host that has full read access to your resource data. If you're able to navigate to the file, try creating a new store. If you encounter any error while trying to create the store, there's likely an issue with the data file that needs to be resolved.
+
+4. If there appears to be a permissions issue, you can enter the GeoServer Docker container using `sudo docker exec -it {container_name} /bin/bash` and check the permissions of the mounted volume.
+
 ## Built With
 
 * [Docker](https://docs.docker.com) - Docker Engine
