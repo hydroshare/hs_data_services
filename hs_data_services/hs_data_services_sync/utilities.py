@@ -311,35 +311,28 @@ def register_geoserver_db(res_id, db):
                 if element.get("key") == "STATISTICS_MINIMUM":
                     layer_min = element.text
 
-            if layer_max == None or layer_min == None or layer_min >= layer_max:
-                return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to parse VRT file."}
-
             try:
                 layer_ndv = vrt.find(".//NoDataValue").text
             except:
-                return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to parse VRT file."}
+                layer_ndv = None
 
-            if layer_ndv == None:
-                return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to parse VRT file."}
+            if layer_max is not None and layer_min is not None and layer_min < layer_max and layer_ndv is not None:
 
-            layer_style = get_layer_style(layer_max, layer_min, layer_ndv, db["layer_name"].replace("/", " "))
+                layer_style = get_layer_style(layer_max, layer_min, layer_ndv, db["layer_name"].replace("/", " "))
 
-            rest_url = f"{geoserver_url}/workspaces/{workspace_id}/styles"
-            headers = {"content-type": "application/vnd.ogc.sld+xml"}
-            response = requests.post(rest_url, data=layer_style, auth=geoserver_auth, headers=headers)
+                rest_url = f"{geoserver_url}/workspaces/{workspace_id}/styles"
+                headers = {"content-type": "application/vnd.ogc.sld+xml"}
+                response = requests.post(rest_url, data=layer_style, auth=geoserver_auth, headers=headers)
 
-            if response.status_code != 201:
-                return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to parse VRT file."}
+                if response.status_code == 201:
 
-            rest_url = f"{geoserver_url}/layers/{workspace_id}:{db['layer_name'].replace('/', ' ')}"
-            headers = {"content-type": "application/json"}
-            body = '{"layer": {"defaultStyle": {"name": "' + db["layer_name"].replace("/", " ") + '", "href":"https:\/\/geoserver.hydroshare.org\/geoserver\/rest\/styles\/' + db["layer_name"].replace("/", " ") + '.json"}}}'
-            response = requests.put(rest_url, data=body, auth=geoserver_auth, headers=headers)
+                    rest_url = f"{geoserver_url}/layers/{workspace_id}:{db['layer_name'].replace('/', ' ')}"
+                    headers = {"content-type": "application/json"}
+                    body = '{"layer": {"defaultStyle": {"name": "' + db["layer_name"].replace("/", " ") + '", "href":"https:\/\/geoserver.hydroshare.org\/geoserver\/rest\/styles\/' + db["layer_name"].replace("/", " ") + '.json"}}}'
+                    response = requests.put(rest_url, data=body, auth=geoserver_auth, headers=headers)
 
-            if response.status_code != 200:
-                return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to parse VRT file."}
-        except:
-            return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to parse VRT file."}
+        except Exception as e:
+            pass
 
     return {"success": True, "type": db["layer_type"], "layer_name": db["layer_name"], "message": f"{'/'.join((geoserver_url.split('/')[:-1]))}/{workspace_id}/wms?service=WMS&version=1.1.0&request=GetMap&layers={workspace_id}:{urllib.parse.quote(db['layer_name'].replace('/', ' '))}&bbox={bbox['minx']}%2C{bbox['miny']}%2C{bbox['maxx']}%2C{bbox['maxy']}&width=612&height=768&srs={bbox['crs']}&format=application/openlayers"}
 
