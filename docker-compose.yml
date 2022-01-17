@@ -3,12 +3,25 @@ version: '3'
 
 services:
 
+  postgres:
+    image: postgres:12.3-alpine
+    environment:
+      - POSTGRES_PASSWORD=default
+      - POSTGRES_DB=hs_data_services
+    volumes:
+      - data_services_volume:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    networks:
+      - data_services_network
+
   geoserver:
     image: oscarfonts/geoserver:2.14.1
     environment: 
       - CUSTOM_UID={{IRODS_ACCESS_UID}}                        # A user ID on the host with read permissions to the iRODS directory
       - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}         # e.g. hydroshare.org
     volumes:
+      - geoserver_volume:/var/local/geoserver
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
       - /projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
     networks:
@@ -37,6 +50,8 @@ services:
       - /static:/static                                        # Static files will be stored locally at root.
     networks:
       - data_services_network
+    depends_on:
+      - postgres
 
   celery-worker:
     build: .
@@ -45,6 +60,7 @@ services:
       - data_services_network
     depends_on:
       - redis
+      - postgres
 
   celery-beat:
     build: .
@@ -54,6 +70,7 @@ services:
     depends_on:
       - redis
       - celery-worker
+      - postgres
 
   nginx:
     image: nginx:1.19
@@ -73,3 +90,8 @@ services:
 networks:
   data_services_network:
     driver: bridge
+
+
+volumes:
+  data_services_volume:
+  geoserver_volume:

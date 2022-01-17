@@ -28,18 +28,6 @@ WORKDIR $DS_HOME
 RUN chmod a+rwx $DS_HOME
 
 
-# Place Application Files --------------------------------------------------------------------------------#
-
-RUN sudo mkdir hs_data_services
-
-COPY hs_data_services/ $DS_HOME/hs_data_services
-COPY conf/ $DS_HOME/conf
-
-RUN sudo chmod -R +x $DS_HOME/conf
-RUN sudo chown -R dsuser $DS_HOME/hs_data_services
-RUN sudo chown -R dsuser $DS_HOME/conf
-
-
 # Setup Conda Environment --------------------------------------------------------------------------------#
 
 RUN wget https://repo.continuum.io/miniconda/Miniconda2-4.5.12-Linux-x86_64.sh
@@ -50,5 +38,21 @@ ENV PATH /home/dsuser/miniconda2/bin:$PATH
 
 RUN conda update conda
 
+COPY hs_data_services/environment.yml $DS_HOME/hs_data_services/environment.yml
+RUN sudo chown -R dsuser $DS_HOME/hs_data_services
 RUN conda env create -f $DS_HOME/hs_data_services/environment.yml
+
+
+# Place Application Files --------------------------------------------------------------------------------#
+
+COPY hs_data_services/ $DS_HOME/hs_data_services
+COPY conf/ $DS_HOME/conf
+
+RUN sudo chmod -R +x $DS_HOME/conf
+RUN sudo chown -R dsuser $DS_HOME/hs_data_services
+RUN sudo chown -R dsuser $DS_HOME/conf
+
+
+# Activate Conda Environment -----------------------------------------------------------------------------#
+
 RUN echo "source activate hs_data_services" > ~/.bashrc
