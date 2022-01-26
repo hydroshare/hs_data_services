@@ -6,6 +6,9 @@
 echo Activating Environment
 source activate hs_data_services
 
+echo Checking Admin User
+python manage.py ensure_admin --username admin --password default
+
 echo Collecting Static Files
 cd /home/dsuser/hs_data_services
 sudo chmod -R 757 /static
