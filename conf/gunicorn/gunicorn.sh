@@ -6,16 +6,17 @@
 echo Activating Environment
 source activate hs_data_services
 
-echo Checking Admin User
-python manage.py ensure_admin --username admin --password default
-
 echo Collecting Static Files
 cd /home/dsuser/hs_data_services
 sudo chmod -R 757 /static
 python manage.py collectstatic --noinput
 
 echo Making Migrations
+python manage.py makemigrations --noinput
 python manage.py migrate --noinput
+
+echo Checking Admin User
+python manage.py ensure_admin --username admin --password default
 
 echo Starting Gunicorn.
 exec gunicorn hs_data_services.wsgi:application \
