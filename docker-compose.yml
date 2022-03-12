@@ -62,6 +62,7 @@ services:
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
       - /static:/static                                        # Static files will be stored locally at root.
+      #- /opt/hs-certs:/opt/hs-certs                            # Used to configure SSL if available.
     networks:
       - data_services_network
     depends_on:
