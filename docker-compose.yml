@@ -2,19 +2,6 @@ version: '3'
 
 
 services:
-
-  postgres:
-    image: postgres:12.3-alpine
-    environment:
-      - POSTGRES_PASSWORD=default
-      - POSTGRES_DB=hs_data_services
-    volumes:
-      - data_services_volume:/var/lib/postgresql/data/
-    ports:
-      - 5432:5432
-    networks:
-      - data_services_network
-
   geoserver:
     image: oscarfonts/geoserver:2.14.1
     environment: 
@@ -50,8 +37,6 @@ services:
       - static:/static                                        # Static files will be stored locally at root.
     networks:
       - data_services_network
-    depends_on:
-      - postgres
 
   celery-worker:
     build: .
@@ -60,7 +45,6 @@ services:
       - data_services_network
     depends_on:
       - redis
-      - postgres
 
   celery-beat:
     build: .
@@ -70,7 +54,6 @@ services:
     depends_on:
       - redis
       - celery-worker
-      - postgres
 
   nginx:
     image: nginx:1.19
