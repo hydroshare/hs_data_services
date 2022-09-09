@@ -23,7 +23,7 @@ services:
     volumes:
       - geoserver_volume:/var/local/geoserver
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
-      - /projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
+      - projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
     networks:
       - data_services_network
 
@@ -47,7 +47,7 @@ services:
     build: .
     command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
     volumes:
-      - /static:/static                                        # Static files will be stored locally at root.
+      - static:/static                                        # Static files will be stored locally at root.
     networks:
       - data_services_network
     depends_on:
@@ -78,7 +78,7 @@ services:
       - 8000:80                                                # Expose all services locally on port 8000
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
-      - /static:/static                                        # Static files will be stored locally at root.
+      - static:/static                                        # Static files will be stored locally at root.
       #- /opt/hs-certs:/opt/hs-certs                            # Used to configure SSL if available.
     networks:
       - data_services_network
@@ -94,5 +94,7 @@ networks:
 
 
 volumes:
+  projects:
+  static:
   data_services_volume:
   geoserver_volume:
