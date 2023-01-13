@@ -17,9 +17,12 @@ services:
     image: kartoza/geoserver:2.22.0
     environment: 
       - GEOSERVER_UID=${IRODS_ACCESS_UID:-501}                                # A user ID on the host with read permissions to the iRODS directory
+      - GEOSERVER_CSRF_WHITELIST=${HYDROSHARE_DOMAIN:-hydroshare.org}
       - HTTP_PORT=8080
       - HTTP_PROXY_PORT=${DATA_SERVICES_PORT:-8090}
       - HTTP_PROXY_NAME=${DATA_SERVICES_DOMAIN}
+      - GEOSERVER_ADMIN_PASSWORD=${GEOSERVER_PASSWORD:-geoserver}
+      - GEOSERVER_ADMIN_USER=${GEOSERVER_USERNAME:-admin}
     volumes:
       - geoserver_volume:/var/local/geoserver
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
