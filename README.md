@@ -13,9 +13,11 @@ These instructions will help you install and run this application in a productio
 
 ### Installing
 
-##### Edit Django settings:
+##### Edit Django settings (for prod):
 
-Rename hs_data_services/hs_data_services/hs_data_services/local_settings.template to local_settings.py.
+For local development, skip this step and use the local_settings.py file that exists in this repo.
+
+Copy hs_data_services/hs_data_services/hs_data_services/local_settings.template to overwrite local_settings.py.
 
 Edit the following settings in local_settings.py:
 * {{HYDROSHARE_DOMAIN}}     - The domain for the connected HydroShare instance e.g. 'hydroshare.org'
@@ -30,12 +32,14 @@ Edit the following settings in local_settings.py:
 
 ##### Edit Docker settings:
 
+For local development, skip this step and use the .env values that exist in this repo.
+
 Edit the following settings in hs_data_services/docker-compose.yml
 
 * {{IRODS_ACCESS_UID}}      - The UID of a user on the host system with iRODS read access.
 * {{HYDROSHARE_DOMAIN}}     - The domain for the connected HydroShare instance e.g. 'hydroshare.org'
 
-##### Start Docker containers:
+##### Start Docker containers (for non-local builds):
 
 From hs_data_services directory, run the following command to build Docker images:
 ```
@@ -48,6 +52,16 @@ $ sudo docker-compose up -d
 ```
 
 By default, all services will be exposed locally on port 8000 and static files will be located in /static/his/. 
+
+##### OR Start Docker containers (for local dev):
+
+Ensure that Hydroshare is up and running locally on port 8000
+
+From hs_data_services directory:
+`UID=${UID} docker-compose build`
+`UID=${UID} docker-compose up -d`
+
+Services will be exposed locally on port 8080, for example: http://localhost:8080/his/admin/
 
 ##### Post-Installation steps:
 

@@ -12,25 +12,19 @@ services:
       - data_services_volume:/var/lib/postgresql/data/
     ports:
       - 5432:5432
-    networks:
-      - data_services_network
 
   geoserver:
     image: oscarfonts/geoserver:2.14.1
     environment: 
-      - CUSTOM_UID={{IRODS_ACCESS_UID}}                        # A user ID on the host with read permissions to the iRODS directory
-      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}         # e.g. hydroshare.org
+      - CUSTOM_UID=${UID:-501}                                # A user ID on the host with read permissions to the iRODS directory
+      - GEOSERVER_CSRF_WHITELIST=${HYDROSHARE_DOMAIN:-hydroshare.org}    # e.g. hydroshare.org
     volumes:
       - geoserver_volume:/var/local/geoserver
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
-      - /projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
-    networks:
-      - data_services_network
+      - projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
 
   redis:
     image: redis:6.0.4-alpine
-    networks:
-      - data_services_network
 
   flower:  
     image: mher/flower:0.9.5
@@ -38,8 +32,6 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - FLOWER_PORT=8040
       - FLOWER_URL_PREFIX=flower
-    networks:
-      - data_services_network
     depends_on:
       - redis
 
@@ -47,17 +39,13 @@ services:
     build: .
     command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
     volumes:
-      - /static:/static                                        # Static files will be stored locally at root.
-    networks:
-      - data_services_network
+      - static:/static                                        # Static files will be stored locally at root.
     depends_on:
       - postgres
 
   celery-worker:
     build: .
     command: /usr/bin/supervisord -c /home/dsuser/conf/celery-worker/celery_worker.conf
-    networks:
-      - data_services_network
     depends_on:
       - redis
       - postgres
@@ -65,8 +53,6 @@ services:
   celery-beat:
     build: .
     command: /usr/bin/supervisord -c /home/dsuser/conf/celery-beat/celery_beat.conf
-    networks:
-      - data_services_network
     depends_on:
       - redis
       - celery-worker
@@ -75,24 +61,19 @@ services:
   nginx:
     image: nginx:1.19
     ports:
-      - 8000:80                                                # Expose all services locally on port 8000
+      - ${DATA_SERVICES_PORT:-8080}:80                              # Expose all services locally on port
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
-      - /static:/static                                        # Static files will be stored locally at root.
+      - static:/static                                        # Static files will be stored locally at root.
       #- /opt/hs-certs:/opt/hs-certs                            # Used to configure SSL if available.
-    networks:
-      - data_services_network
     depends_on:
       - gunicorn
       - geoserver
       - flower
 
 
-networks:
-  data_services_network:
-    driver: bridge
-
-
 volumes:
+  projects:
+  static:
   data_services_volume:
   geoserver_volume:
