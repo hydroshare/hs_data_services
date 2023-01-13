@@ -16,7 +16,7 @@ services:
   geoserver:
     image: oscarfonts/geoserver:2.14.1
     environment: 
-      - CUSTOM_UID=${UID:-501}                                # A user ID on the host with read permissions to the iRODS directory
+      - CUSTOM_UID=${IRODS_ACCESS_UID:-501}                                # A user ID on the host with read permissions to the iRODS directory
       - GEOSERVER_CSRF_WHITELIST=${HYDROSHARE_DOMAIN:-hydroshare.org}    # e.g. hydroshare.org
     volumes:
       - geoserver_volume:/var/local/geoserver
