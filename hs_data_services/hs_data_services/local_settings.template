@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,13 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [{{HYDROSHARE_DOMAIN}}, 'gnupstream', 'localhost', '127.0.0.1']    # e.g. "hydroshare.org"
-
+ALLOWED_HOSTS = [config.get('HYDROSHARE_DOMAIN', 'hydroshare.org'), 'gnupstream', 'localhost', '127.0.0.1']   # e.g. "hydroshare.org"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = {{SECRET_KEY}}
+SECRET_KEY = config.get('SECRET_KEY', 'secret')
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -42,7 +44,7 @@ DATABASES = {
 STATIC_URL = '/static/his/'
 STATIC_ROOT = '/static/his/'
 
-PROXY_BASE_URL = {{DATA_SERVICES_URL}}            # e.g. "https://geoserver-beta.hydroshare.org/his"
+PROXY_BASE_URL = config.get('DATA_SERVICES_URL', 'http://localhost:8090/his')             # e.g. "https://geoserver-beta.hydroshare.org/his"
 
 # Celery settings
 
@@ -50,15 +52,14 @@ CELERY_BROKER_URL = "redis://redis:6379/0"
 CELERY_BEAT_SCHEDULE = {}
 
 # HydroShare Data Services Connection settings
-
-HYDROSHARE_URL = {{HYDROSHARE_REST_URL}}          # e.g. "https://beta.hydroshare.org/hsapi"
+HYDROSHARE_URL = config.get('HYDROSHARE_REST_URL', 'http://localhost:8000/hsapi')         # e.g. "https://beta.hydroshare.org/hsapi"
 
 DATA_SERVICES = {
     'geoserver': {
-        'URL': {{GEOSERVER_REST_URL}},            # e.g. "https://geoserver-beta.hydroshare.org/geoserver/rest"
-        'USER': {{GEOSERVER_USERNAME}},
-        'PASSWORD': {{GEOSERVER_PASSWORD}},
-        'IRODS_DIR': {{IRODS_LOCAL_DIRECTORY}},   # e.g. "/projects/hydroshare/vaults/hydrotest/home/betaDataProxy"
-        'NAMESPACE': {{WORKSPACE_PREFIX}}         # e.g. "HS"
+        'URL': config.get('GEOSERVER_REST_URL', 'http://localhost:8090/geoserver/rest'),  # e.g. "https://geoserver-beta.hydroshare.org/geoserver/rest"
+        'USER': config.get('GEOSERVER_USERNAME', 'admin'),
+        'PASSWORD': config.get('GEOSERVER_PASSWORD', 'geoserver'),
+        'IRODS_DIR': config.get('IRODS_LOCAL_DIRECTORY', '/tmp'),                         # e.g. "/projects/hydroshare/vaults/hydrotest/home/betaDataProxy"
+        'NAMESPACE': config.get('WORKSPACE_PREFIX', 'HS')                                 # e.g. "HS"
     }
 }

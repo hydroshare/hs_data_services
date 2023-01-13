@@ -21,8 +21,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = [config.get('HYDROSHARE_DOMAIN', 'localhost'), 'gnupstream', 'localhost', '127.0.0.1']
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [config.get('HYDROSHARE_DOMAIN', 'hydroshare.org'), 'gnupstream', 'localhost', '127.0.0.1']
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -45,7 +45,7 @@ DATABASES = {
 STATIC_URL = '/static/his/'
 STATIC_ROOT = '/static/his/'
 
-PROXY_BASE_URL = config.get('DATA_SERVICES_URL', 'http://localhost/his')
+PROXY_BASE_URL = config.get('DATA_SERVICES_URL', 'http://localhost:8090/his')
 
 # Celery settings
 
@@ -53,12 +53,11 @@ CELERY_BROKER_URL = "redis://redis:6379/0"
 CELERY_BEAT_SCHEDULE = {}
 
 # HydroShare Data Services Connection settings
-
 HYDROSHARE_URL = config.get('HYDROSHARE_REST_URL', 'http://localhost:8000/hsapi')
 
 DATA_SERVICES = {
     'geoserver': {
-        'URL': config.get('GEOSERVER_REST_URL', 'http://localhost:8080/geoserver/rest'),
+        'URL': config.get('GEOSERVER_REST_URL', 'http://localhost:8090/geoserver/rest'),
         'USER': config.get('GEOSERVER_USERNAME', 'admin'),
         'PASSWORD': config.get('GEOSERVER_PASSWORD', 'geoserver'),
         'IRODS_DIR': config.get('IRODS_LOCAL_DIRECTORY', '/tmp'),

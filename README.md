@@ -61,7 +61,18 @@ From hs_data_services directory:
 `UID=${UID} docker-compose build`
 `UID=${UID} docker-compose up -d`
 
-Services will be exposed locally on port 8080, for example: http://localhost:8080/his/admin/
+Services will be exposed locally on DATA_SERVICES_PORT (default 8090), for example: http://localhost:8090/his/admin/
+
+HSWS_URL = "http://host.docker.internal:8080/his/services/update"
+HSWS_API_TOKEN = "fba02c9f6e9a0c269681ece8bd330a9c314923f3"
+HSWS_TIMEOUT = 10
+HSWS_PUBLISH_URLS = True
+HSWS_ACTIVATED = True
+
+HSWS_GEOSERVER_URL = "http://host.docker.internal:8080/geoserver"
+HSWS_GEOSERVER_ESCAPE = {
+    '/': ' '
+}
 
 ##### Post-Installation steps:
 

@@ -61,7 +61,7 @@ services:
   nginx:
     image: nginx:1.19
     ports:
-      - ${DATA_SERVICES_PORT:-8080}:80                              # Expose all services locally on port
+      - ${DATA_SERVICES_PORT:-8090}:80                              # Expose all services locally on port
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
       - static:/static                                        # Static files will be stored locally at root.
