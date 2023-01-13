@@ -45,7 +45,6 @@ RUN conda env create -f $DS_HOME/hs_data_services/environment.yml
 
 # Place Application Files --------------------------------------------------------------------------------#
 
-COPY hs_data_services/ $DS_HOME/hs_data_services
 COPY conf/ $DS_HOME/conf
 
 RUN sudo chmod -R +x $DS_HOME/conf

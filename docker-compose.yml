@@ -45,6 +45,7 @@ services:
     command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
     volumes:
       - static:/static                                        # Static files will be stored locally at root.
+      - "./hs_data_services:/home/dsuser/hs_data_services"
     depends_on:
       - postgres
 
@@ -54,6 +55,8 @@ services:
     depends_on:
       - redis
       - postgres
+    volumes:
+      - "./hs_data_services:/home/dsuser/hs_data_services"
 
   celery-beat:
     build: .
