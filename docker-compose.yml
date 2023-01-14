@@ -26,7 +26,7 @@ services:
     volumes:
       - geoserver_volume:/var/local/geoserver
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
-      - projects:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources
+      - idata_vault_vol:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources!
 
   redis:
     image: redis:6.0.4-alpine
@@ -81,7 +81,9 @@ services:
 
 
 volumes:
-  projects:
+  idata_vault_vol:
+    external: true
+    name: hydroshare_idata_vault_vol
   static:
   data_services_volume:
   geoserver_volume:

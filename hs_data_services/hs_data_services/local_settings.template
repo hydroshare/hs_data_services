@@ -59,7 +59,7 @@ DATA_SERVICES = {
         'URL': config.get('GEOSERVER_REST_URL', 'http://host.docker.internal:8090/geoserver/rest'),  # e.g. "https://geoserver-beta.hydroshare.org/geoserver/rest"
         'USER': config.get('GEOSERVER_USERNAME', 'admin'),
         'PASSWORD': config.get('GEOSERVER_PASSWORD', 'geoserver'),
-        'IRODS_DIR': config.get('IRODS_LOCAL_DIRECTORY', '/tmp'),                                    # e.g. "/projects/hydroshare/vaults/hydrotest/home/betaDataProxy"
+        'IRODS_DIR': config.get('IRODS_LOCAL_DIRECTORY', '/projects/iRODS/Vault/home/wwwHydroProxy'),# e.g. "/projects/hydroshare/vaults/hydrotest/home/betaDataProxy"
         'NAMESPACE': config.get('WORKSPACE_PREFIX', 'HS')                                            # e.g. "HS"
     }
 }

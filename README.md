@@ -64,9 +64,10 @@ The [.env](.env) is where you can modify ports if needed in order to avoid confl
 ##### Start Docker containers for local build:
 
 From hs_data_services directory:
-`IRODS_ACCESS_UID=${UID} docker-compose build`
-`IRODS_ACCESS_UID=${UID} docker-compose up -d`
-
+```
+IRODS_ACCESS_UID=${UID} docker-compose build
+IRODS_ACCESS_UID=${UID} docker-compose up -d
+```
 The `${UID}` will get your user's UID on the host system and make it available during the docker build
 
 Services will be exposed locally on DATA_SERVICES_PORT (default 8090), for example: http://localhost:8090/his/admin/
@@ -105,6 +106,10 @@ HSWS_GEOSERVER_ESCAPE = {
 Note that `host.docker.internal` is used for local builds (instead of `localhost` or `127.0.0.1`). This is allows the different docker services to communicate on the host.
 Ensure that Hydroshare is up and running locally on whatever HS_PORT you set in the [.env](.env) (default 8000)
 
+Unless you have the `idata_vault_vol` volume from Hydroshare linked to a directory on the host (not the default) you will likely have to modify permissions so that the geoserver can read from the iRods vault:
+```
+docker exec hs_data_services-geoserver-1 chmod -R o+r /projects
+```
 Once everything is set up, HydroShare should start sending update requests to this data services app. You can check that this app is receiving those requests by going to {host_url}/flower and clicking on 'Tasks'. You can test it manually by sending a POST request to {host_url}/his/services/update/{resource_id}/ and adding {'Authorization': 'Token HSWS_API_TOKEN'} to the request's headers.
 
 ##### Troubleshooting steps:
