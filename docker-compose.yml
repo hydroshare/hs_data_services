@@ -26,7 +26,7 @@ services:
     volumes:
       - geoserver_volume:/var/local/geoserver
       - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
-      - idata_vault_vol:/projects:ro                                 # Mount projects as a read-only volume to grant access to resources!
+      - idata_vault_vol:/projects
 
   redis:
     image: redis:6.0.4-alpine
