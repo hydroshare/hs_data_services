@@ -22,4 +22,5 @@ echo Starting Gunicorn.
 exec gunicorn hs_data_services.wsgi:application \
     --bind 0.0.0.0:8060 \
     --workers 3 \
-    --timeout 3600
+    --timeout 3600 \
+    --reload

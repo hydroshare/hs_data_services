@@ -15,7 +15,7 @@ These instructions will help you install and run this application in a productio
 
 ##### Edit Django settings:
 
-Rename hs_data_services/hs_data_services/hs_data_services/local_settings.template to local_settings.py.
+Rename [hs_data_services/hs_data_services/hs_data_services/local_settings.template](hs_data_services/hs_data_services/hs_data_services/local_settings.template) to local_settings.py.
 
 Edit the following settings in local_settings.py:
 * {{HYDROSHARE_DOMAIN}}     - The domain for the connected HydroShare instance e.g. 'hydroshare.org'
@@ -30,7 +30,7 @@ Edit the following settings in local_settings.py:
 
 ##### Edit Docker settings:
 
-Edit the following settings in hs_data_services/docker-compose.yml
+Edit the following settings in [hs_data_services/docker-compose.yml](hs_data_services/docker-compose.yml):
 
 * {{IRODS_ACCESS_UID}}      - The UID of a user on the host system with iRODS read access.
 * {{HYDROSHARE_DOMAIN}}     - The domain for the connected HydroShare instance e.g. 'hydroshare.org'
@@ -49,7 +49,30 @@ $ sudo docker-compose up -d
 
 By default, all services will be exposed locally on port 8000 and static files will be located in /static/his/. 
 
-##### Post-Installation steps:
+
+### Running locally for development
+
+##### Django settings for dev builds:
+
+Copy [hs_data_services/hs_data_services/hs_data_services/local_settings.template](hs_data_services/hs_data_services/hs_data_services/local_settings.template) to local_settings.py.
+
+For local builds, you shouldn't need to edit local_settings.py, you just need to create it.
+
+For local builds, instead of editing [hs_data_services/docker-compose.yml](hs_data_services/docker-compose.yml), you can edit the [.env](.env).
+The [.env](.env) is where you can modify ports if needed in order to avoid conflicts on your host.
+
+##### Start Docker containers (dev build):
+
+From hs_data_services directory:
+```
+IRODS_ACCESS_UID=${UID} docker-compose build
+IRODS_ACCESS_UID=${UID} docker-compose up -d
+```
+The `${UID}` will get your user's UID on the host system and make it available during the docker build
+
+Services will be exposed locally on DATA_SERVICES_PORT (default 8090), for example: http://localhost:8090/his/admin/
+
+##### Post-Installation steps (dev build):
 
 Log in to the Django site at {host_url}/his/admin with default username and password: 'admin' and 'default'
 From the admin settings page, change the admin password.
@@ -67,6 +90,27 @@ Update or add the following settings to HydroShare:
 * HSWS_TIMEOUT              - This can be fairly short e.g. 10
 * HSWS_ACTIVATED            - True or False
 
+Here is an example of settings used in local development:
+```
+HSWS_URL = "http://host.docker.internal:8090/his/services/update"
+HSWS_API_TOKEN = "fba02c9f6e9a0c269681ece8bd330a9c314923f3"
+HSWS_TIMEOUT = 10
+HSWS_PUBLISH_URLS = True
+HSWS_ACTIVATED = True
+
+HSWS_GEOSERVER_URL = "http://host.docker.internal:8090/geoserver"
+HSWS_GEOSERVER_ESCAPE = {
+    '/': ' '
+}
+```
+Note that `host.docker.internal` is used for local builds (instead of `localhost` or `127.0.0.1`). This is allows the different docker services to communicate on the host.
+Ensure that Hydroshare is up and running locally on whatever HS_PORT you set in the [.env](.env) (default 8000).
+The gunicorn container will hot-restart, but the celery worker and celery beat services will not. To restart those you can use, for example, `docker restart hs_data_services-celery-worker-1`.
+
+Unless you have the `idata_vault_vol` volume from Hydroshare linked to a directory on the host (not the default) you will likely have to modify permissions so that the geoserver can read from the iRods vault:
+```
+docker exec hs_data_services-geoserver-1 chmod -R o+rx /projects
+```
 Once everything is set up, HydroShare should start sending update requests to this data services app. You can check that this app is receiving those requests by going to {host_url}/flower and clicking on 'Tasks'. You can test it manually by sending a POST request to {host_url}/his/services/update/{resource_id}/ and adding {'Authorization': 'Token HSWS_API_TOKEN'} to the request's headers.
 
 ##### Troubleshooting steps:
