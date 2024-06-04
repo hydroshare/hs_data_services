@@ -1,3 +1,4 @@
+import logging
 import requests
 import json
 import os
@@ -5,12 +6,15 @@ import urllib
 from hs_data_services import settings
 from lxml import etree
 
+logger = logging.getLogger(__name__)
+
 
 def update_data_services(resource_id):
     """
     Update data services registration for a HydroShare resource.
     """
 
+    logger.info(f"Updating data services for resource: {resource_id}")
     response = {
         'success': False,
         'message': None,
@@ -53,6 +57,7 @@ def update_data_services(resource_id):
         response['success'] = True
         response['message'] = f'Successfully unregistered GeoServer data services for resource: {resource_id}'
 
+    logger.info(f"Successfully updated data services for resource: {resource_id}")
     return response
 
 
@@ -199,6 +204,7 @@ def register_geoserver_workspace(res_id):
     Add GeoServer workspace.
     """
 
+    logger.info(f"Registering GeoServer workspace for resource: {res_id}")
     geoserver_namespace = settings.DATA_SERVICES.get("geoserver", {}).get('NAMESPACE')
     geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
     geoserver_user = settings.DATA_SERVICES.get("geoserver", {}).get('USER')
@@ -228,6 +234,7 @@ def unregister_geoserver_databases(res_id):
     Removes a GeoServer network and associated databases.
     """
 
+    logger.info(f"Unregistering GeoServer databases for resource: {res_id}")
     geoserver_namespace = settings.DATA_SERVICES.get("geoserver", {}).get('NAMESPACE')
     geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
     geoserver_user = settings.DATA_SERVICES.get("geoserver", {}).get('USER')
@@ -254,6 +261,7 @@ def unregister_geoserver_databases(res_id):
     else:
         response = None
 
+    logger.info(f"Successfully unregistered GeoServer databases for resource: {res_id}")
     return response
 
 
@@ -268,6 +276,7 @@ def copy_files_to_geoserver(res_id, db):
     Copy GeoServer files from HydroShare to GeoServer.
     """
 
+    logger.info(f"Copying files to GeoServer for resource: {res_id}")
     geoserver_directory = get_geoserver_data_dir()
 
     error_response = {
@@ -283,7 +292,9 @@ def copy_files_to_geoserver(res_id, db):
             file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
             response = requests.get(file_url)
         except Exception as e:
-            error_response["message"] = f"Error requesting files from HydroShare: {e}"
+            message = f"Error requesting files from HydroShare: {e}"
+            error_response["message"] = message
+            logger.error(message)
             return error_response
 
         # Now move the file in the response to the geoServer directory
@@ -293,8 +304,11 @@ def copy_files_to_geoserver(res_id, db):
             with open(file_path, 'wb') as f:
                 f.write(response.content)
         except Exception as e:
-            error_response["message"] = f"Error writing files to GeoServer: {e}"
+            message = f"Error writing files to GeoServer: {e}"
+            error_response["message"] = message
+            logger.error(message)
             return error_response
+    logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
     return {
         "success": True,
         "type": db["layer_type"],
@@ -307,6 +321,8 @@ def remove_copied_files_from_geoserver(res_id, db):
     """
     Remove files from GeoServer.
     """
+
+    logger.info(f"Removing files from GeoServer for resource: {res_id}")
     geoserver_directory = get_geoserver_data_dir()
 
     error_response = {
@@ -320,8 +336,11 @@ def remove_copied_files_from_geoserver(res_id, db):
         file_path = os.path.join(geoserver_directory, db["hs_path"])
         os.remove(file_path)
     except Exception as e:
-        error_response["message"] = f"Error removing files from geoserver: {e}"
+        message = f"Error removing files from geoserver: {e}"
+        error_response["message"] = message
+        logger.error(message)
         return error_response
+    logger.info(f"Successfully removed files from GeoServer for resource: {res_id}")
     return {
         "success": True,
         "type": db["layer_type"],
@@ -335,6 +354,7 @@ def register_geoserver_db(res_id, db):
     Attempts to register a GeoServer layer
     """
 
+    logger.info(f"Registering GeoServer layer for resource: {res_id}")
     geoserver_namespace = settings.DATA_SERVICES.get("geoserver", {}).get('NAMESPACE')
     geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
     geoserver_user = settings.DATA_SERVICES.get("geoserver", {}).get('USER')
@@ -418,6 +438,7 @@ def register_geoserver_db(res_id, db):
         except Exception as e:
             pass
 
+    logger.info(f"Successfully registered GeoServer layer for resource: {res_id}")
     return {"success": True, "type": db["layer_type"], "layer_name": db["layer_name"], "message": f"{'/'.join((geoserver_url.split('/')[:-1]))}/{workspace_id}/wms?service=WMS&version=1.1.0&request=GetMap&layers={workspace_id}:{urllib.parse.quote(db['layer_name'].replace('/', ' '))}&bbox={bbox['minx']}%2C{bbox['miny']}%2C{bbox['maxx']}%2C{bbox['maxy']}&width=612&height=768&srs={bbox['crs']}&format=application/openlayers"}
 
 
@@ -426,6 +447,7 @@ def unregister_geoserver_db(res_id, db):
     Removes a GeoServer layer
     """
 
+    logger.info(f"Unregistering GeoServer layer for resource: {res_id}")
     geoserver_namespace = settings.DATA_SERVICES.get("geoserver", {}).get('NAMESPACE')
     geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
     geoserver_user = settings.DATA_SERVICES.get("geoserver", {}).get('USER')
@@ -451,6 +473,7 @@ def unregister_geoserver_db(res_id, db):
     else:
         response = None
 
+    logger.info(f"Successfully unregistered GeoServer layer for resource: {res_id}")
     return response
 
 
