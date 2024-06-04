@@ -8,14 +8,15 @@ class Command(BaseCommand):
     help = "Copy resource files from HydroShare to geoserver storage"
 
     def add_arguments(self, parser):
-        parser.add_argument('resource_id', type=str, help='The HydroShare resource ID to copy files from')
+        parser.add_argument('resource_ids', nargs='*', type=str)
 
     def handle(self, *args, **options):
-        resource_id = options.get('resource_id')
-        if resource_id:
-            print(f"Copying files from resource: {resource_id}")
-            result = self.copy_files(resource_id)
-            print(result)
+        resource_ids = options['resource_ids']
+        if len(resource_ids) > 0:
+            for resource_id in resource_ids:
+                print(f"Copying files from resource: {resource_id}")
+                result = self.copy_files(resource_id)
+                print(result)
         else:
             resources = self.get_list_of_public_geo_resources()
             num_resources = len(resources)
