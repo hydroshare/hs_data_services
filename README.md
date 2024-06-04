@@ -69,6 +69,17 @@ Update or add the following settings to HydroShare:
 
 Once everything is set up, HydroShare should start sending update requests to this data services app. You can check that this app is receiving those requests by going to {host_url}/flower and clicking on 'Tasks'. You can test it manually by sending a POST request to {host_url}/his/services/update/{resource_id}/ and adding {'Authorization': 'Token HSWS_API_TOKEN'} to the request's headers.
 
+If you want to use a pre-existing token, you can do so from a shell in the celery worker container:
+`docker exec -it hs_data_services-celery-worker-1 /bin/bash`
+`python manage.py shell`
+```python
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model
+User = get_user_model()
+admin = User.objects.get(username="admin")
+Token.objects.create(user=admin, key='{EXISTING_KEY_HERE}')
+```
+
 ##### Troubleshooting steps:
 
 After following the instructions above, if GeoServer isn't working as expected, try the following steps:
