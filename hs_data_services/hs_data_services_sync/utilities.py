@@ -2,6 +2,7 @@ import logging
 import requests
 import json
 import os
+import shutil
 import urllib
 from hs_data_services import settings
 from lxml import etree
@@ -379,7 +380,7 @@ def remove_files_for_entire_resource(res_id):
     try:
         dir_path = os.path.join(geoserver_directory, res_id)
         logger.info(f"Removing dir from GeoServer: {dir_path}")
-        os.remove(dir_path)
+        shutil.rmtree(dir_path)
     except Exception as e:
         message = f"Error removing files from geoserver: {e}"
         error_response["message"] = message
