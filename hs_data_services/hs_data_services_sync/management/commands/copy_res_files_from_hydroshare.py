@@ -1,4 +1,5 @@
 import requests
+import json
 from django.core.management.base import BaseCommand
 from hs_data_services import settings
 from hs_data_services_sync import tasks
@@ -39,7 +40,7 @@ class Command(BaseCommand):
             "availability": ["public"],
             "geofilter": "false"
         }
-        rest_url = f"{hydroshare_url}/discoverapi/?filter={params}"
+        rest_url = f"{hydroshare_url}/discoverapi/?filter={json.dumps(params)}"
         rest_url = rest_url.replace(" ", "")
         print(f"Getting list of public geospatial resources from: {rest_url}")
         response = requests.get(rest_url)
