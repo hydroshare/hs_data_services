@@ -54,6 +54,7 @@ def update_data_services(resource_id):
 
     else:
         unregister_geoserver_databases(resource_id)
+        remove_files_for_entire_resource(resource_id)
 
         response['success'] = True
         response['message'] = f'Successfully unregistered GeoServer data services for resource: {resource_id}'
@@ -360,6 +361,34 @@ def remove_copied_file_from_geoserver(res_id, db):
         "type": layer_type,
         "layer_name": layer_name,
         "message": "Successfully removed GeoServer files."
+    }
+
+
+def remove_files_for_entire_resource(res_id):
+    """
+    Remove all files from GeoServer for a resource.
+    """
+
+    geoserver_directory = get_geoserver_data_dir()
+
+    error_response = {
+        "success": False,
+        "message": f"Error: Unable to remove GeoServer files for resource {res_id}."
+    }
+
+    try:
+        dir_path = os.path.join(geoserver_directory, res_id)
+        logger.info(f"Removing dir from GeoServer: {dir_path}")
+        os.remove(dir_path)
+    except Exception as e:
+        message = f"Error removing files from geoserver: {e}"
+        error_response["message"] = message
+        logger.error(message)
+        return error_response
+    logger.info("Successfully removed files from GeoServer")
+    return {
+        "success": True,
+        "message": "Successfully removed GeoServer directory."
     }
 
 
