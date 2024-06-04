@@ -30,13 +30,11 @@ class Command(BaseCommand):
         print("Done copying files")
 
     def get_list_of_public_geo_resources(self):
-        hydroshare_url = settings.HYDROSHARE_URL
+        hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
         params = {
-          "filter": {
             "type": ["Geographic Feature (ESRI Shapefiles)", "Geographic Raster"],
             "availability": ["public"],
-            "geofilter": False
-          }
+            "geofilter": "false"
         }
         rest_url = f"{hydroshare_url}/discoverapi/?filter={params}"
         print(f"Getting list of public geospatial resources from: {rest_url}")
