@@ -278,10 +278,17 @@ def copy_file_to_geoserver(res_id, db):
 
     geoserver_directory = get_geoserver_data_dir()
 
+    layer_type = None
+    layer_name = None
+    if db.get("layer_type", None):
+        layer_type = db["layer_type"]
+    if db.get("layer_name", None):
+        layer_name = db["layer_name"]
+
     error_response = {
         "success": False,
-        "type": db["layer_type"],
-        "layer_name": db["layer_name"],
+        "type": layer_type,
+        "layer_name": layer_name,
         "message": "Error: Unable to copy GeoServer files."
     }
 
@@ -311,8 +318,8 @@ def copy_file_to_geoserver(res_id, db):
     logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
     return {
         "success": True,
-        "type": db["layer_type"],
-        "layer_name": db["layer_name"],
+        "type": layer_type,
+        "layer_name": layer_name,
         "message": "Successfully copied GeoServer files."
     }
 
