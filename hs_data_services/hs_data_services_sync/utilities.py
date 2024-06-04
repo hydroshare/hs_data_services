@@ -29,9 +29,18 @@ def update_data_services(resource_id):
             unregister_geoserver_db(resource_id, db)
 
         for db in database_list['geoserver']['register']:
+            # copy geoserver files from HS to GeoServer
+            file_transfer_info = copy_files_to_geoserver(resource_id, db)
+            if file_transfer_info['success'] is False:
+                response['message'] = file_transfer_info['message']
+                return response
             db_info = register_geoserver_db(resource_id, db)
             if db_info['success'] is False:
                 unregister_geoserver_db(resource_id, db)
+                # TODO: ideally we "inform" HS that the registration failed
+                # This is called from an async task, so we can't return a meaningful response to HS
+
+                remove_copied_files_from_geoserver(resource_id, db)
 
         geoserver_list = get_geoserver_list(resource_id)
 
@@ -248,6 +257,79 @@ def unregister_geoserver_databases(res_id):
     return response
 
 
+def get_geoserver_data_dir():
+    # TODO: update the IRODS_DIR setting
+    geoserver_directory = settings.DATA_SERVICES.get("geoserver", {}).get('IRODS_DIR')
+    return geoserver_directory
+
+
+def copy_files_to_geoserver(res_id, db):
+    """
+    Copy GeoServer files from HydroShare to GeoServer.
+    """
+
+    geoserver_directory = get_geoserver_data_dir()
+
+    error_response = {
+        "success": False,
+        "type": db["layer_type"],
+        "layer_name": db["layer_name"],
+        "message": "Error: Unable to copy GeoServer files."
+    }
+
+    if db["layer_type"] == "GeographicRaster":
+        try:
+            hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
+            file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
+            response = requests.get(file_url)
+        except Exception as e:
+            error_response["message"] = f"Error requesting files from HydroShare: {e}"
+            return error_response
+
+        # Now move the file in the response to the geoServer directory
+        try:
+            file_path = os.path.join(geoserver_directory, db["hs_path"])
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+        except Exception as e:
+            error_response["message"] = f"Error writing files to GeoServer: {e}"
+            return error_response
+    return {
+        "success": True,
+        "type": db["layer_type"],
+        "layer_name": db["layer_name"],
+        "message": f"Successfully copied GeoServer files. {response.content}"
+    }
+
+
+def remove_copied_files_from_geoserver(res_id, db):
+    """
+    Remove files from GeoServer.
+    """
+    geoserver_directory = get_geoserver_data_dir()
+
+    error_response = {
+        "success": False,
+        "type": db["layer_type"],
+        "layer_name": db["layer_name"],
+        "message": "Error: Unable to copy GeoServer files."
+    }
+
+    try:
+        file_path = os.path.join(geoserver_directory, db["hs_path"])
+        os.remove(file_path)
+    except Exception as e:
+        error_response["message"] = f"Error removing files from geoserver: {e}"
+        return error_response
+    return {
+        "success": True,
+        "type": db["layer_type"],
+        "layer_name": db["layer_name"],
+        "message": "Successfully removed GeoServer files."
+    }
+
+
 def register_geoserver_db(res_id, db):
     """
     Attempts to register a GeoServer layer
@@ -257,7 +339,7 @@ def register_geoserver_db(res_id, db):
     geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
     geoserver_user = settings.DATA_SERVICES.get("geoserver", {}).get('USER')
     geoserver_pass = settings.DATA_SERVICES.get("geoserver", {}).get('PASSWORD')
-    geoserver_directory = settings.DATA_SERVICES.get("geoserver", {}).get('IRODS_DIR')
+    geoserver_directory = get_geoserver_data_dir()
     geoserver_auth = requests.auth.HTTPBasicAuth(
         geoserver_user, 
         geoserver_pass
