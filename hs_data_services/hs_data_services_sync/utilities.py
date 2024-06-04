@@ -268,25 +268,27 @@ def register_geoserver_db(res_id, db):
     headers = {
         "content-type": "application/json"
     }
+    error_message = "Error: Unable to register GeoServer layer."
+    error_response = {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": error_message}
 
     if any(i in db['layer_name'] for i in [".", ","]):
-        return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to register GeoServer layer."}
+        return error_response
 
     rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{db['layer_name'].replace('/', ' ')}/external.{db['file_type']}"
     data = f"file://{geoserver_directory}/{db['hs_path']}"
     response = requests.put(rest_url, data=data, headers=headers, auth=geoserver_auth)
 
     if response.status_code != 201:
-        return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to register GeoServer layer."}
+        return error_response
 
     rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{db['layer_name'].replace('/', ' ')}/{db['layer_group']}/{db['file_name']}.json"
     response = requests.get(rest_url, headers=headers, auth=geoserver_auth)
 
     try:
         if json.loads(response.content.decode('utf-8'))[db["verification"]]["enabled"] is False:
-            return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to register GeoServer layer."}
+            return error_response
     except:
-        return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to register GeoServer layer."}
+        return error_response
 
     bbox = json.loads(response.content)[db["verification"]]["nativeBoundingBox"]
 
@@ -294,7 +296,7 @@ def register_geoserver_db(res_id, db):
     response = requests.put(rest_url, headers=headers, auth=geoserver_auth, data=data)
 
     if response.status_code != 200:
-        return {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": "Error: Unable to register GeoServer layer."}
+        return error_response
 
     if db["layer_type"] == "GeographicRaster":
         try:
