@@ -439,7 +439,10 @@ def register_geoserver_db(res_id, db):
             pass
 
     logger.info(f"Successfully registered GeoServer layer for resource: {res_id}")
-    return {"success": True, "type": db["layer_type"], "layer_name": db["layer_name"], "message": f"{'/'.join((geoserver_url.split('/')[:-1]))}/{workspace_id}/wms?service=WMS&version=1.1.0&request=GetMap&layers={workspace_id}:{urllib.parse.quote(db['layer_name'].replace('/', ' '))}&bbox={bbox['minx']}%2C{bbox['miny']}%2C{bbox['maxx']}%2C{bbox['maxy']}&width=612&height=768&srs={bbox['crs']}&format=application/openlayers"}
+    add_string = ""
+    if bbox.get("crs", None):
+        add_string = f"&srs={bbox['crs']}"
+    return {"success": True, "type": db["layer_type"], "layer_name": db["layer_name"], "message": f"{'/'.join((geoserver_url.split('/')[:-1]))}/{workspace_id}/wms?service=WMS&version=1.1.0&request=GetMap&layers={workspace_id}:{urllib.parse.quote(db['layer_name'].replace('/', ' '))}&bbox={bbox['minx']}%2C{bbox['miny']}%2C{bbox['maxx']}%2C{bbox['maxy']}&width=612&height=768&format=application/openlayers{add_string}"}
 
 
 def unregister_geoserver_db(res_id, db):
