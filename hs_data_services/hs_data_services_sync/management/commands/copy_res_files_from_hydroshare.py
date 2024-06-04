@@ -39,6 +39,7 @@ class Command(BaseCommand):
           }
         }
         rest_url = f"{hydroshare_url}/discoverapi/?filter={params}"
+        print(f"Getting list of public geospatial resources from: {rest_url}")
         response = requests.get(rest_url)
         response_json = response.json()
         resources = response_json.get('resources', [])
