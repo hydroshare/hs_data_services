@@ -45,7 +45,7 @@ class Command(BaseCommand):
         print(f"Getting list of public geospatial resources from: {rest_url}")
         response = requests.get(rest_url)
         response_json = response.json()
-        resources = response_json.get('resources', [])
+        resources = json.loads(response_json.get('resources', []))
         res_ids = [resource.short_id for resource in resources if resource.get('short_id', None)]
         return res_ids
 
