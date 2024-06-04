@@ -324,10 +324,17 @@ def remove_copied_file_from_geoserver(res_id, db):
 
     geoserver_directory = get_geoserver_data_dir()
 
+    layer_type = None
+    layer_name = None
+    if db.get("layer_type", None):
+        layer_type = db["layer_type"]
+    if db.get("layer_name", None):
+        layer_name = db["layer_name"]
+
     error_response = {
         "success": False,
-        "type": db["layer_type"],
-        "layer_name": db["layer_name"],
+        "type": layer_type,
+        "layer_name": layer_name,
         "message": "Error: Unable to copy GeoServer files."
     }
 
@@ -341,12 +348,6 @@ def remove_copied_file_from_geoserver(res_id, db):
         logger.error(message)
         return error_response
     logger.info("Successfully removed files from GeoServer")
-    layer_type = None
-    layer_name = None
-    if db.get("layer_type", None):
-        layer_type = db["layer_type"]
-    if db.get("layer_name", None):
-        layer_name = db["layer_name"]
     return {
         "success": True,
         "type": layer_type,
