@@ -34,7 +34,7 @@ def update_data_services(resource_id):
 
         for db in database_list['geoserver']['register']:
             # copy geoserver files from HS to GeoServer
-            file_transfer_info = copy_files_to_geoserver(resource_id, db)
+            file_transfer_info = copy_file_to_geoserver(resource_id, db)
             if file_transfer_info['success'] is False:
                 response['message'] = file_transfer_info['message']
                 return response
@@ -44,7 +44,7 @@ def update_data_services(resource_id):
                 # TODO: ideally we "inform" HS that the registration failed
                 # This is called from an async task, so we can't return a meaningful response to HS
 
-                remove_copied_files_from_geoserver(resource_id, db)
+                remove_copied_file_from_geoserver(resource_id, db)
 
         geoserver_list = get_geoserver_list(resource_id)
 
@@ -266,17 +266,15 @@ def unregister_geoserver_databases(res_id):
 
 
 def get_geoserver_data_dir():
-    # TODO: update the IRODS_DIR setting
-    geoserver_directory = settings.DATA_SERVICES.get("geoserver", {}).get('IRODS_DIR')
+    geoserver_directory = settings.DATA_SERVICES.get("geoserver", {}).get('GEOSERVER_DATA_DIR')
     return geoserver_directory
 
 
-def copy_files_to_geoserver(res_id, db):
+def copy_file_to_geoserver(res_id, db):
     """
-    Copy GeoServer files from HydroShare to GeoServer.
+    Copy Geospatial file from HydroShare to GeoServer.
     """
 
-    logger.info(f"Copying files to GeoServer for resource: {res_id}")
     geoserver_directory = get_geoserver_data_dir()
 
     error_response = {
@@ -286,29 +284,29 @@ def copy_files_to_geoserver(res_id, db):
         "message": "Error: Unable to copy GeoServer files."
     }
 
-    if db["layer_type"] == "GeographicRaster":
-        try:
-            hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
-            file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
-            response = requests.get(file_url)
-        except Exception as e:
-            message = f"Error requesting files from HydroShare: {e}"
-            error_response["message"] = message
-            logger.error(message)
-            return error_response
+    try:
+        hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
+        file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
+        logger.info(f"Copying file to GeoServer from: {file_url}")
+        response = requests.get(file_url)
+    except Exception as e:
+        message = f"Error requesting files from HydroShare: {e}"
+        error_response["message"] = message
+        logger.error(message)
+        return error_response
 
-        # Now move the file in the response to the geoServer directory
-        try:
-            file_path = os.path.join(geoserver_directory, db["hs_path"])
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'wb') as f:
-                logger.info(f"Writing file to GeoServer: {file_path}")
-                f.write(response.content)
-        except Exception as e:
-            message = f"Error writing files to GeoServer: {e}"
-            error_response["message"] = message
-            logger.error(message)
-            return error_response
+    # Now move the file in the response to the geoServer directory
+    try:
+        file_path = os.path.join(geoserver_directory, db["hs_path"])
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'wb') as f:
+            logger.info(f"Writing file to GeoServer: {file_path}")
+            f.write(response.content)
+    except Exception as e:
+        message = f"Error writing files to GeoServer: {e}"
+        error_response["message"] = message
+        logger.error(message)
+        return error_response
     logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
     return {
         "success": True,
@@ -318,12 +316,11 @@ def copy_files_to_geoserver(res_id, db):
     }
 
 
-def remove_copied_files_from_geoserver(res_id, db):
+def remove_copied_file_from_geoserver(res_id, db):
     """
-    Remove files from GeoServer.
+    Remove file from GeoServer.
     """
 
-    logger.info(f"Removing files from GeoServer for resource: {res_id}")
     geoserver_directory = get_geoserver_data_dir()
 
     error_response = {
@@ -335,13 +332,14 @@ def remove_copied_files_from_geoserver(res_id, db):
 
     try:
         file_path = os.path.join(geoserver_directory, db["hs_path"])
+        logger.info(f"Removing file from GeoServer: {file_path}")
         os.remove(file_path)
     except Exception as e:
         message = f"Error removing files from geoserver: {e}"
         error_response["message"] = message
         logger.error(message)
         return error_response
-    logger.info(f"Successfully removed files from GeoServer for resource: {res_id}")
+    logger.info("Successfully removed files from GeoServer")
     return {
         "success": True,
         "type": db["layer_type"],

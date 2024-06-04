@@ -25,7 +25,7 @@ Edit the following settings in local_settings.py:
 * {{GEOSERVER_REST_URL}}    - GeoServer's REST URL e.g. 'https://geoserver.hydroshare.org/geoserver/rest'
 * {{GEOSERVER_USERNAME}}    - Username for GeoServer. Default is 'admin'
 * {{GEOSERVER_PASSWORD}}    - Password for GeoServer. Default is 'geoserver'. Change in production.
-* {{IRODS_LOCAL_DIRECTORY}} - Local GeoServer path to iRODS data. Typically somewhere in /projects
+* {{LOCAL_GEOSERVER_DATA_DIRECTORY}} - Local GeoServer path to HS resources data. This is where the geospatial files will be copied from HS
 * {{WORKSPACE_PREFIX}}      - Resource ID prefix for GeoServer workspaces; this must begin with a letter. e.g. 'HS'
 
 ##### Edit Docker settings:
