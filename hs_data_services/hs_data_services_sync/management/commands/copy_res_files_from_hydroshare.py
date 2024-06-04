@@ -31,8 +31,11 @@ class Command(BaseCommand):
 
     def get_list_of_public_geo_resources(self):
         hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
+        types = ["Geographic Feature (ESRI Shapefiles)", "Geographic Raster"]
+        # replace spaces with + for the query string
+        types = [t.replace(" ", "+") for t in types]
         params = {
-            "type": ["Geographic Feature (ESRI Shapefiles)", "Geographic Raster"],
+            "type": types,
             "availability": ["public"],
             "geofilter": "false"
         }
