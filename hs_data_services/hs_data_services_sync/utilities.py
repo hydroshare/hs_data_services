@@ -302,6 +302,7 @@ def copy_files_to_geoserver(res_id, db):
             file_path = os.path.join(geoserver_directory, db["hs_path"])
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             with open(file_path, 'wb') as f:
+                logger.info(f"Writing file to GeoServer: {file_path}")
                 f.write(response.content)
         except Exception as e:
             message = f"Error writing files to GeoServer: {e}"
