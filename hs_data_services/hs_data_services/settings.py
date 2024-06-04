@@ -124,6 +124,7 @@ LOGGING = {
         '': {
             'handlers': ['console'],
             'level': os.getenv('LOG_LEVEL', 'INFO'),
+            'propagate': False,
         },
     },
 }
