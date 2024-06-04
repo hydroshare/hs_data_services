@@ -45,8 +45,20 @@ class Command(BaseCommand):
         print(f"Getting list of public geospatial resources from: {rest_url}")
         response = requests.get(rest_url)
         response_json = response.json()
-        resources = json.loads(response_json.get('resources', []))
-        res_ids = [resource["short_id"] for resource in resources if resource.get('short_id', None)]
+        page_count = response_json.get('page_count', 0)
+        rescount = response_json.get('rescount', 0)
+        perpage = response_json.get('perpage', 0)
+        res_ids = []
+        print(f"Iterating over {page_count} pages of {perpage} resources each, total resources: {rescount}")
+        for i in range(1, page_count):
+            print(f"Getting page {i}")
+            response = requests.get(f"{rest_url}&pnum={i}")
+            response_json = response.json()
+            resources = json.loads(response_json.get('resources', []))
+            res_ids = [resource["short_id"] for resource in resources if resource.get('short_id', None)]
+            res_ids.extend(res_ids)
+        print(f"Found {len(res_ids)} public geospatial resources")
+        print(f"Should match {rescount}")
         return res_ids
 
     def copy_files(self, resource_id):
