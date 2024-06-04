@@ -1,5 +1,8 @@
 from celery import task
+from celery.utils.log import get_task_logger
 from hs_data_services_sync import utilities
+
+logger = get_task_logger(__name__)
 
 
 @task(name='update_data_services_task')

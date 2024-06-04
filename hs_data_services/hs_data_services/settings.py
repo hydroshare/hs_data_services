@@ -106,9 +106,22 @@ USE_TZ = True
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s %(message)s',
+            'datefmt': '%y %b %d, %H:%M:%S',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+        },
+        'celery': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'celery.log',
+            'formatter': 'simple',
+            'maxBytes': 1024 * 1024 * 100,  # 100 mb
         },
     },
     'root': {
@@ -119,12 +132,17 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': False,
+            # 'propagate': False,
+        },
+        'celery': {
+            'handlers': ['celery', 'console'],
+            'level': 'INFO',
+            # 'propagate': False,
         },
         '': {
             'handlers': ['console'],
             'level': os.getenv('LOG_LEVEL', 'INFO'),
-            'propagate': False,
+            # 'propagate': False,
         },
     },
 }
