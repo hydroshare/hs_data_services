@@ -313,7 +313,7 @@ def copy_files_to_geoserver(res_id, db):
         "success": True,
         "type": db["layer_type"],
         "layer_name": db["layer_name"],
-        "message": f"Successfully copied GeoServer files. {response.content}"
+        "message": "Successfully copied GeoServer files."
     }
 
 
