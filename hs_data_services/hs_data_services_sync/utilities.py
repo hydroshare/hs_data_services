@@ -31,6 +31,7 @@ def update_data_services(resource_id):
 
         for db in database_list['geoserver']['unregister']:
             unregister_geoserver_db(resource_id, db)
+            remove_copied_file_from_geoserver(resource_id, db)
 
         for db in database_list['geoserver']['register']:
             # copy geoserver files from HS to GeoServer
