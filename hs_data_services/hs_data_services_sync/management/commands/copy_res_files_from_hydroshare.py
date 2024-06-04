@@ -40,7 +40,7 @@ class Command(BaseCommand):
             "geofilter": "false"
         }
         rest_url = f"{hydroshare_url}/discoverapi/?filter={params}"
-        rest_url = rest_url.replace(" ", "%20")
+        rest_url = rest_url.replace(" ", "")
         print(f"Getting list of public geospatial resources from: {rest_url}")
         response = requests.get(rest_url)
         response_json = response.json()
