@@ -50,7 +50,7 @@ class Command(BaseCommand):
         perpage = response_json.get('perpage', 0)
         res_ids = []
         print(f"Iterating over {page_count} pages of {perpage} resources each, total resources: {rescount}")
-        for i in range(1, page_count):
+        for i in range(1, page_count + 1):
             print(f"Getting page {i}")
             response = requests.get(f"{rest_url}&pnum={i}")
             response_json = response.json()
