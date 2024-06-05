@@ -45,7 +45,7 @@ class Command(BaseCommand):
         print(f"Getting list of public geospatial resources from: {rest_url}")
         response = requests.get(rest_url)
         response_json = response.json()
-        page_count = response_json.get('page_count', 0)
+        page_count = response_json.get('pagecount', 0)
         rescount = response_json.get('rescount', 0)
         perpage = response_json.get('perpage', 0)
         res_ids = []
