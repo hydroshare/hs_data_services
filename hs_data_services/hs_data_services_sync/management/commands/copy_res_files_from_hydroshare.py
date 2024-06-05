@@ -55,8 +55,8 @@ class Command(BaseCommand):
             response = requests.get(f"{rest_url}&pnum={i}")
             response_json = response.json()
             resources = json.loads(response_json.get('resources', []))
-            res_ids = [resource["short_id"] for resource in resources if resource.get('short_id', None)]
-            res_ids.extend(res_ids)
+            new_ids = [resource["short_id"] for resource in resources if resource.get('short_id', None)]
+            res_ids.extend(new_ids)
         print(f"Found {len(res_ids)} public geospatial resources")
         print(f"Should match {rescount}")
         return res_ids
