@@ -52,6 +52,7 @@ def update_data_services(resource_id):
 
         if not geoserver_list:
             unregister_geoserver_databases(resource_id)
+            remove_files_for_entire_resource(resource_id)
 
     else:
         unregister_geoserver_databases(resource_id)
