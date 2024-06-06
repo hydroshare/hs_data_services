@@ -95,7 +95,7 @@ services:
       - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - static_volume:/static                                  # Static files will be stored in a docker volume.
       #- /opt/hs-certs:/opt/hs-certs                           # Used to configure SSL if available.
-      - ./conf/nginx/404.html:/404.html                        # Custom 404 page
+      - ./conf/nginx/custom_404.html:/usr/share/nginx/html/custom_404.html
     networks:
       - data_services_network
     depends_on:
