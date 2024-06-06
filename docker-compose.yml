@@ -92,9 +92,10 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./conf/nginx:/etc/nginx/conf.d
+      - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - static_volume:/static                                  # Static files will be stored in a docker volume.
-      #- /opt/hs-certs:/opt/hs-certs                            # Used to configure SSL if available.
+      #- /opt/hs-certs:/opt/hs-certs                           # Used to configure SSL if available.
+      - ./conf/nginx/custom_404.html:/usr/share/nginx/html/custom_404.html
     networks:
       - data_services_network
     depends_on:
