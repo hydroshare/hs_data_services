@@ -20,7 +20,7 @@ services:
     image: oscarfonts/geoserver:2.24.1
     environment: 
       - CUSTOM_UID={{IRODS_ACCESS_UID}}                              # A user ID on the host with read permissions to the iRODS directory
-      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}               # e.g. hydroshare.org
+      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}               # e.g. hydroshare.org,hydroshare.io: https://docs.geoserver.org/latest/en/user/security/webadmin/csrf.html
       - CATALINA_OPTS=-server -Djava.awt.headless=true -Xms2g -Xmx10g -XX:NewSize=48m -DGEOSERVER_DATA_DIR=/var/local/geoserver
       # https://github.com/oscarfonts/docker-geoserver/blob/master/2.24.1/Dockerfile#L35-L37
       # https://docs.geoserver.org/main/en/user/production/container.html
