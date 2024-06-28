@@ -421,14 +421,14 @@ def register_geoserver_db(res_id, db):
     if any(i in db['layer_name'] for i in [".", ","]):
         return error_response
 
-    rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{db['layer_name'].replace('/', ' ')}/external.{db['file_type']}"
+    rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}/external.{db['file_type']}"
     data = f"file://{geoserver_directory}/{db['hs_path']}"
     response = requests.put(rest_url, data=data, headers=headers, auth=geoserver_auth)
 
     if response.status_code != 201:
         return error_response
 
-    rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{db['layer_name'].replace('/', ' ')}/{db['layer_group']}/{db['file_name']}.json"
+    rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}/{db['layer_group']}/{db['file_name']}.json"
     response = requests.get(rest_url, headers=headers, auth=geoserver_auth)
 
     try:
@@ -516,7 +516,7 @@ def unregister_geoserver_db(res_id, db):
     }
 
     if geoserver_url is not None:
-        rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{db['layer_name'].replace('/', ' ')}"
+        rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}"
         response = requests.delete(rest_url, params=params, headers=headers, auth=geoserver_auth)
     else:
         response = None
