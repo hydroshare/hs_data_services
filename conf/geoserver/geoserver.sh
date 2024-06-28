@@ -11,14 +11,14 @@ addgroup --gid 1099 tomcat && useradd -m -u 1099 -g tomcat tomcat \
 if [ -n "${CUSTOM_UID}" ];then
   echo "Using custom UID ${CUSTOM_UID}."
   usermod -u ${CUSTOM_UID} tomcat
-  find / -path /projects -prune -false -o -user 1099 -exec chown -h tomcat {} \; 
+  find / -path /geoserver_resources -prune -false -o -user 1099 -exec chown -h tomcat {} \; 
 fi
 
 # Add custom group ID
 if [ -n "${CUSTOM_GID}" ];then
   echo "Using custom GID ${CUSTOM_GID}."
   groupmod -g ${CUSTOM_GID} tomcat
-  find / -path /projects -prune -false -o -group 1099 -exec chgrp -h tomcat {} \;
+  find / -path /geoserver_resources -prune -false -o -group 1099 -exec chgrp -h tomcat {} \;
 fi
 
 # Allow Anonymous GET Access

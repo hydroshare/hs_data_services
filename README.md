@@ -25,7 +25,7 @@ Edit the following settings in local_settings.py:
 * {{GEOSERVER_REST_URL}}    - GeoServer's REST URL e.g. 'https://geoserver.hydroshare.org/geoserver/rest'
 * {{GEOSERVER_USERNAME}}    - Username for GeoServer. Default is 'admin'
 * {{GEOSERVER_PASSWORD}}    - Password for GeoServer. Default is 'geoserver'. Change in production.
-* {{IRODS_LOCAL_DIRECTORY}} - Local GeoServer path to iRODS data. Typically somewhere in /projects
+* {{LOCAL_GEOSERVER_DATA_DIRECTORY}} - Local GeoServer path to HS resources data. This is where the geospatial files will be copied from HS
 * {{WORKSPACE_PREFIX}}      - Resource ID prefix for GeoServer workspaces; this must begin with a letter. e.g. 'HS'
 
 ##### Edit Docker settings:
@@ -34,6 +34,7 @@ Edit the following settings in hs_data_services/docker-compose.yml
 
 * {{IRODS_ACCESS_UID}}      - The UID of a user on the host system with iRODS read access.
 * {{HYDROSHARE_DOMAIN}}     - The domain for the connected HydroShare instance e.g. 'hydroshare.org'
+
 
 ##### Start Docker containers:
 
@@ -68,6 +69,17 @@ Update or add the following settings to HydroShare:
 * HSWS_ACTIVATED            - True or False
 
 Once everything is set up, HydroShare should start sending update requests to this data services app. You can check that this app is receiving those requests by going to {host_url}/flower and clicking on 'Tasks'. You can test it manually by sending a POST request to {host_url}/his/services/update/{resource_id}/ and adding {'Authorization': 'Token HSWS_API_TOKEN'} to the request's headers.
+
+If you want to use a pre-existing token, you can do so from a shell in the celery worker container:
+`docker exec -it hs_data_services-celery-worker-1 /bin/bash`
+`python manage.py shell`
+```python
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model
+User = get_user_model()
+admin = User.objects.get(username="admin")
+Token.objects.create(user=admin, key='{EXISTING_KEY_HERE}')
+```
 
 ##### Troubleshooting steps:
 
