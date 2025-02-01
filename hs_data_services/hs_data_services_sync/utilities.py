@@ -132,6 +132,16 @@ def get_database_list(res_id):
             if result["content_type"] == "application/x-qgis" and layer_ext == "shp":
                 registered_list.append(layer_name.replace("/", " "))
                 if layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
+                    # get the associated .shx, .dbf, and .prj files
+                    extensions = [".shx", ".dbf", ".prj"]
+                    associated_files = []
+                    for ext in extensions:
+                        expected_url = result["url"].replace(".shp", ext)
+                        logger.info(f"Checking for associated file: {expected_url}")
+                        if expected_url in [i["url"] for i in file_list]:
+                            associated_files.append(
+                                "/".join(expected_url.split("/")[4:])
+                            )
                     db_list["geoserver"]["register"].append(
                         {
                             "layer_name": layer_name,
@@ -141,7 +151,8 @@ def get_database_list(res_id):
                             "hs_path": layer_path,
                             "store_type": "datastores",
                             "layer_group": "featuretypes",
-                            "verification": "featureType"
+                            "verification": "featureType",
+                            "associated_files": associated_files,
                         }
                     )
 
@@ -295,36 +306,38 @@ def copy_file_to_geoserver(res_id, db):
         "message": "Error: Unable to copy GeoServer files."
     }
 
-    try:
-        hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
-        file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
+    def get_and_write_file(file_url, file_path):
         logger.info(f"Copying file to GeoServer from: {file_url}")
         response = requests.get(file_url)
-    except Exception as e:
-        message = f"Error requesting files from HydroShare: {e}"
-        error_response["message"] = message
-        logger.error(message)
-        return error_response
-
-    # Now move the file in the response to the geoServer directory
-    try:
-        file_path = os.path.join(geoserver_directory, db["hs_path"])
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             logger.info(f"Writing file to GeoServer: {file_path}")
             f.write(response.content)
+
+    try:
+        hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
+        file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
+        file_path = os.path.join(geoserver_directory, db["hs_path"])
+        get_and_write_file(file_url, file_path)
+        # Get not only the .shp file but also the .shx, .dbf, and .prj files
+        # https://github.com/hydroshare/hydroshare/issues/5631
+        if db.get("associated_files", None):
+            for file in db["associated_files"]:
+                logger.info(f"Copying associated file to GeoServer from: {file}")
+                file_url = f"{hydroshare_url}/resource/{file}"
+                file_path = os.path.join(geoserver_directory, file)
+                get_and_write_file(file_url, file_path)
+        logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
+        return {
+            "success": True,
+            "type": layer_type,
+            "layer_name": layer_name,
+            "message": "Successfully copied GeoServer files."
+        }
     except Exception as e:
-        message = f"Error writing files to GeoServer: {e}"
+        message = f"Error copying files to geoserver: {e}"
         error_response["message"] = message
         logger.error(message)
         return error_response
-    logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
-    return {
-        "success": True,
-        "type": layer_type,
-        "layer_name": layer_name,
-        "message": "Successfully copied GeoServer files."
-    }
 
 
 def remove_copied_file_from_geoserver(res_id, db):
