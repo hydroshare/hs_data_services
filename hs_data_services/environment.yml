@@ -5,6 +5,7 @@ channels:
 
 dependencies:
   - python=3.8
+  - pip<24.1
   - psycopg2=2.8.4
   - gunicorn=20.0.4
   - lxml
