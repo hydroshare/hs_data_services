@@ -307,13 +307,20 @@ def copy_file_to_geoserver(res_id, db):
     }
 
     def get_and_write_file(file_url, file_path):
-        logger.info(f"Copying file to GeoServer from: {file_url}")
-        response = requests.get(file_url)
-        # create the directory if it doesn't exist
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'wb') as f:
-            logger.info(f"Writing file to GeoServer: {file_path}")
-            f.write(response.content)
+        try:
+            logger.info(f"Copying file to GeoServer from: {file_url}")
+            response = requests.get(file_url)
+            # create the directory if it doesn't exist
+            dir_path = os.path.dirname(file_path) + "/"
+            logger.info(f"Creating directory: {dir_path}")
+            os.makedirs(os.path.dirname(dir_path), exist_ok=True)
+            with open(file_path, 'w+b') as f:
+                logger.info(f"Writing file to GeoServer: {file_path}")
+                f.write(response.content)
+        except Exception as e:
+            message = f"Error getting/writing file: {e}"
+            logger.error(message)
+            raise Exception(message)
 
     try:
         hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
@@ -322,6 +329,7 @@ def copy_file_to_geoserver(res_id, db):
         get_and_write_file(file_url, file_path)
         # Get not only the .shp file but also the .shx, .dbf, and .prj files
         # https://github.com/hydroshare/hydroshare/issues/5631
+        logger.info(f"Checking for associated files for resource: {res_id}")
         if db.get("associated_files", None):
             for file in db["associated_files"]:
                 logger.info(f"Copying associated file to GeoServer from: {file}")
