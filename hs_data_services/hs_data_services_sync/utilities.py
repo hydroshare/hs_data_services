@@ -42,26 +42,29 @@ def update_data_services(resource_id):
                 return response
             db_info = register_geoserver_db(resource_id, db)
             if db_info['success'] is False:
+                logging.error("Error registering GeoServer layer. Unregistering...")
                 unregister_geoserver_db(resource_id, db)
                 # TODO: ideally we "inform" HS that the registration failed
                 # This is called from an async task, so we can't return a meaningful response to HS
-
+                logging.info("Removing copied files from GeoServer...")
                 remove_copied_file_from_geoserver(resource_id, db)
 
         geoserver_list = get_geoserver_list(resource_id)
 
         if not geoserver_list:
+            logging.info("No GeoServer layers found. Unregistering workspace...")
             unregister_geoserver_databases(resource_id)
             remove_files_for_entire_resource(resource_id)
 
     else:
+        logging.info("Resource is private. Unregistering GeoServer databases...")
         unregister_geoserver_databases(resource_id)
         remove_files_for_entire_resource(resource_id)
 
         response['success'] = True
         response['message'] = f'Successfully unregistered GeoServer data services for resource: {resource_id}'
 
-    logger.info(f"Successfully updated data services for resource: {resource_id}")
+    logger.info(f"Completed attempt to update data services for resource: {resource_id}")
     return response
 
 
@@ -375,6 +378,10 @@ def remove_copied_file_from_geoserver(res_id, db):
         file_path = os.path.join(geoserver_directory, db["hs_path"])
         logger.info(f"Removing file from GeoServer: {file_path}")
         os.remove(file_path)
+        for file in db["associated_files"]:
+            file_path = os.path.join(geoserver_directory, file)
+            logger.info(f"Removing associated file from GeoServer: {file_path}")
+            os.remove(file_path)
     except Exception as e:
         message = f"Error removing files from geoserver: {e}"
         error_response["message"] = message
@@ -442,6 +449,7 @@ def register_geoserver_db(res_id, db):
     error_response = {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": error_message}
 
     if any(i in db['layer_name'] for i in [".", ","]):
+        logging.error(f"Invalid layer name: {db['layer_name']}")
         return error_response
 
     rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}/external.{db['file_type']}"
@@ -449,6 +457,7 @@ def register_geoserver_db(res_id, db):
     response = requests.put(rest_url, data=data, headers=headers, auth=geoserver_auth)
 
     if response.status_code != 201:
+        logging.error(f"Error registering GeoServer layer at {rest_url}: {response}")
         return error_response
 
     rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}/{db['layer_group']}/{db['file_name']}.json"
@@ -456,8 +465,10 @@ def register_geoserver_db(res_id, db):
 
     try:
         if json.loads(response.content.decode('utf-8'))[db["verification"]]["enabled"] is False:
+            logging.error(f"Verification not enabled for layer: {db['layer_name']}")
             return error_response
     except:
+        logging.error(f"Error checking verification for layer: {db['layer_name']}")
         return error_response
 
     bbox = json.loads(response.content)[db["verification"]]["nativeBoundingBox"]
@@ -466,6 +477,7 @@ def register_geoserver_db(res_id, db):
     response = requests.put(rest_url, headers=headers, auth=geoserver_auth, data=data)
 
     if response.status_code != 200:
+        logging.error(f"Error attempting to put layer data at {rest_url}")
         return error_response
 
     if db["layer_type"] == "GeographicRaster":
