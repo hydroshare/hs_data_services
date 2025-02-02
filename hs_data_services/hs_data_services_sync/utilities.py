@@ -309,6 +309,8 @@ def copy_file_to_geoserver(res_id, db):
     def get_and_write_file(file_url, file_path):
         logger.info(f"Copying file to GeoServer from: {file_url}")
         response = requests.get(file_url)
+        # create the directory if it doesn't exist
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             logger.info(f"Writing file to GeoServer: {file_path}")
             f.write(response.content)
