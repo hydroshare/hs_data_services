@@ -42,26 +42,29 @@ def update_data_services(resource_id):
                 return response
             db_info = register_geoserver_db(resource_id, db)
             if db_info['success'] is False:
+                logging.error("Error registering GeoServer layer. Unregistering...")
                 unregister_geoserver_db(resource_id, db)
                 # TODO: ideally we "inform" HS that the registration failed
                 # This is called from an async task, so we can't return a meaningful response to HS
-
+                logging.info("Removing copied files from GeoServer...")
                 remove_copied_file_from_geoserver(resource_id, db)
 
         geoserver_list = get_geoserver_list(resource_id)
 
         if not geoserver_list:
+            logging.info("No GeoServer layers found. Unregistering workspace...")
             unregister_geoserver_databases(resource_id)
             remove_files_for_entire_resource(resource_id)
 
     else:
+        logging.info("Resource is private. Unregistering GeoServer databases...")
         unregister_geoserver_databases(resource_id)
         remove_files_for_entire_resource(resource_id)
 
         response['success'] = True
         response['message'] = f'Successfully unregistered GeoServer data services for resource: {resource_id}'
 
-    logger.info(f"Successfully updated data services for resource: {resource_id}")
+    logger.info(f"Completed attempt to update data services for resource: {resource_id}")
     return response
 
 
@@ -132,6 +135,16 @@ def get_database_list(res_id):
             if result["content_type"] == "application/x-qgis" and layer_ext == "shp":
                 registered_list.append(layer_name.replace("/", " "))
                 if layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
+                    # get the associated .shx, .dbf, and .prj files
+                    extensions = [".shx", ".dbf", ".prj"]
+                    associated_files = []
+                    for ext in extensions:
+                        expected_url = result["url"].replace(".shp", ext)
+                        logger.info(f"Checking for associated file: {expected_url}")
+                        if expected_url in [i["url"] for i in file_list]:
+                            associated_files.append(
+                                "/".join(expected_url.split("/")[4:])
+                            )
                     db_list["geoserver"]["register"].append(
                         {
                             "layer_name": layer_name,
@@ -141,7 +154,8 @@ def get_database_list(res_id):
                             "hs_path": layer_path,
                             "store_type": "datastores",
                             "layer_group": "featuretypes",
-                            "verification": "featureType"
+                            "verification": "featureType",
+                            "associated_files": associated_files,
                         }
                     )
 
@@ -265,7 +279,7 @@ def unregister_geoserver_databases(res_id):
     else:
         response = None
 
-    logger.info(f"Successfully unregistered GeoServer databases for resource: {res_id}")
+    logger.info(f"Completed attempt at unregistering GeoServer databases for resource: {res_id}")
     return response
 
 
@@ -295,36 +309,48 @@ def copy_file_to_geoserver(res_id, db):
         "message": "Error: Unable to copy GeoServer files."
     }
 
+    def get_and_write_file(file_url, file_path):
+        try:
+            logger.info(f"Copying file to GeoServer from: {file_url}")
+            response = requests.get(file_url)
+            # create the directory if it doesn't exist
+            dir_path = os.path.dirname(file_path) + "/"
+            logger.info(f"Creating directory: {dir_path}")
+            os.makedirs(os.path.dirname(dir_path), exist_ok=True)
+            with open(file_path, 'w+b') as f:
+                logger.info(f"Writing file to GeoServer: {file_path}")
+                f.write(response.content)
+        except Exception as e:
+            message = f"Error getting/writing file: {e}"
+            logger.error(message)
+            raise Exception(message)
+
     try:
         hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
         file_url = f"{hydroshare_url}/resource/{db['hs_path']}"
-        logger.info(f"Copying file to GeoServer from: {file_url}")
-        response = requests.get(file_url)
-    except Exception as e:
-        message = f"Error requesting files from HydroShare: {e}"
-        error_response["message"] = message
-        logger.error(message)
-        return error_response
-
-    # Now move the file in the response to the geoServer directory
-    try:
         file_path = os.path.join(geoserver_directory, db["hs_path"])
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'wb') as f:
-            logger.info(f"Writing file to GeoServer: {file_path}")
-            f.write(response.content)
+        get_and_write_file(file_url, file_path)
+        # Get not only the .shp file but also the .shx, .dbf, and .prj files
+        # https://github.com/hydroshare/hydroshare/issues/5631
+        logger.info(f"Checking for associated files for resource: {res_id}")
+        if db.get("associated_files", None):
+            for file in db["associated_files"]:
+                logger.info(f"Copying associated file to GeoServer from: {file}")
+                file_url = f"{hydroshare_url}/resource/{file}"
+                file_path = os.path.join(geoserver_directory, file)
+                get_and_write_file(file_url, file_path)
+        logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
+        return {
+            "success": True,
+            "type": layer_type,
+            "layer_name": layer_name,
+            "message": "Successfully copied GeoServer files."
+        }
     except Exception as e:
-        message = f"Error writing files to GeoServer: {e}"
+        message = f"Error copying files to geoserver: {e}"
         error_response["message"] = message
         logger.error(message)
         return error_response
-    logger.info(f"Successfully copied files to GeoServer for resource: {res_id}")
-    return {
-        "success": True,
-        "type": layer_type,
-        "layer_name": layer_name,
-        "message": "Successfully copied GeoServer files."
-    }
 
 
 def remove_copied_file_from_geoserver(res_id, db):
@@ -352,6 +378,10 @@ def remove_copied_file_from_geoserver(res_id, db):
         file_path = os.path.join(geoserver_directory, db["hs_path"])
         logger.info(f"Removing file from GeoServer: {file_path}")
         os.remove(file_path)
+        for file in db["associated_files"]:
+            file_path = os.path.join(geoserver_directory, file)
+            logger.info(f"Removing associated file from GeoServer: {file_path}")
+            os.remove(file_path)
     except Exception as e:
         message = f"Error removing files from geoserver: {e}"
         error_response["message"] = message
@@ -419,6 +449,7 @@ def register_geoserver_db(res_id, db):
     error_response = {"success": False, "type": db["layer_type"], "layer_name": db["layer_name"], "message": error_message}
 
     if any(i in db['layer_name'] for i in [".", ","]):
+        logging.error(f"Invalid layer name: {db['layer_name']}")
         return error_response
 
     rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}/external.{db['file_type']}"
@@ -426,6 +457,7 @@ def register_geoserver_db(res_id, db):
     response = requests.put(rest_url, data=data, headers=headers, auth=geoserver_auth)
 
     if response.status_code != 201:
+        logging.error(f"Error registering GeoServer layer at {rest_url}: {response}")
         return error_response
 
     rest_url = f"{geoserver_url}/workspaces/{workspace_id}/{db['store_type']}/{str(db['layer_name']).replace('/', ' ')}/{db['layer_group']}/{db['file_name']}.json"
@@ -433,8 +465,10 @@ def register_geoserver_db(res_id, db):
 
     try:
         if json.loads(response.content.decode('utf-8'))[db["verification"]]["enabled"] is False:
+            logging.error(f"Verification not enabled for layer: {db['layer_name']}")
             return error_response
     except:
+        logging.error(f"Error checking verification for layer: {db['layer_name']}")
         return error_response
 
     bbox = json.loads(response.content)[db["verification"]]["nativeBoundingBox"]
@@ -443,6 +477,7 @@ def register_geoserver_db(res_id, db):
     response = requests.put(rest_url, headers=headers, auth=geoserver_auth, data=data)
 
     if response.status_code != 200:
+        logging.error(f"Error attempting to put layer data at {rest_url}")
         return error_response
 
     if db["layer_type"] == "GeographicRaster":
