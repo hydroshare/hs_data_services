@@ -279,7 +279,7 @@ def unregister_geoserver_databases(res_id):
     else:
         response = None
 
-    logger.info(f"Successfully unregistered GeoServer databases for resource: {res_id}")
+    logger.info(f"Completed attempt at unregistering GeoServer databases for resource: {res_id}")
     return response
 
 
