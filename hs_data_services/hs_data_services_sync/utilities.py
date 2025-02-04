@@ -32,22 +32,16 @@ def update_data_services(resource_id):
 
         for db in database_list['geoserver']['unregister']:
             unregister_geoserver_db(resource_id, db)
-            remove_copied_file_from_geoserver(resource_id, db)
 
         for db in database_list['geoserver']['register']:
             # copy geoserver files from HS to GeoServer
-            file_transfer_info = copy_file_to_geoserver(resource_id, db)
+            file_transfer_info = copy_files_to_geoserver(resource_id, db)
             if file_transfer_info['success'] is False:
                 response['message'] = file_transfer_info['message']
                 return response
             db_info = register_geoserver_db(resource_id, db)
             if db_info['success'] is False:
-                logging.error("Error registering GeoServer layer. Unregistering...")
                 unregister_geoserver_db(resource_id, db)
-                # TODO: ideally we "inform" HS that the registration failed
-                # This is called from an async task, so we can't return a meaningful response to HS
-                logging.info("Removing copied files from GeoServer...")
-                remove_copied_file_from_geoserver(resource_id, db)
 
         geoserver_list = get_geoserver_list(resource_id)
 
@@ -68,12 +62,12 @@ def update_data_services(resource_id):
     return response
 
 
-
 def get_database_list(res_id):
     """
     Gets a list of HydroShare databases on which web services can be published.
     """
 
+    logger.info(f"Getting database list for resource: {res_id}")
     db_list = {
         "access": None,
         "geoserver": {
@@ -174,12 +168,12 @@ def get_database_list(res_id):
     return db_list
 
 
-
 def get_geoserver_list(res_id):
     """
     Gets a list of data stores and coverages from a GeoServer workspace.
     """
 
+    logger.info(f"Getting geoserver list for resource: {res_id}")
     layer_list = []
 
     geoserver_namespace = settings.DATA_SERVICES.get("geoserver", {}).get('NAMESPACE')
@@ -288,11 +282,12 @@ def get_geoserver_data_dir():
     return geoserver_directory
 
 
-def copy_file_to_geoserver(res_id, db):
+def copy_files_to_geoserver(res_id, db):
     """
     Copy Geospatial file from HydroShare to GeoServer.
     """
 
+    logger.info(f"Copying files to GeoServer for resource: {res_id}")
     geoserver_directory = get_geoserver_data_dir()
 
     layer_type = None
@@ -311,7 +306,7 @@ def copy_file_to_geoserver(res_id, db):
 
     def get_and_write_file(file_url, file_path):
         try:
-            logger.info(f"Copying file to GeoServer from: {file_url}")
+            logger.info(f"Getting file from: {file_url}")
             response = requests.get(file_url)
             # create the directory if it doesn't exist
             dir_path = os.path.dirname(file_path) + "/"
@@ -353,7 +348,7 @@ def copy_file_to_geoserver(res_id, db):
         return error_response
 
 
-def remove_copied_file_from_geoserver(res_id, db):
+def remove_copied_files_from_geoserver(res_id, db):
     """
     Remove file from GeoServer.
     """
@@ -378,10 +373,11 @@ def remove_copied_file_from_geoserver(res_id, db):
         file_path = os.path.join(geoserver_directory, db["hs_path"])
         logger.info(f"Removing file from GeoServer: {file_path}")
         os.remove(file_path)
-        for file in db["associated_files"]:
-            file_path = os.path.join(geoserver_directory, file)
-            logger.info(f"Removing associated file from GeoServer: {file_path}")
-            os.remove(file_path)
+        if db.get("associated_files", None):
+            for file in db["associated_files"]:
+                file_path = os.path.join(geoserver_directory, file)
+                logger.info(f"Removing associated file from GeoServer: {file_path}")
+                os.remove(file_path)
     except Exception as e:
         message = f"Error removing files from geoserver: {e}"
         error_response["message"] = message
@@ -401,6 +397,7 @@ def remove_files_for_entire_resource(res_id):
     Remove all files from GeoServer for a resource.
     """
 
+    logger.info(f"Removing all files for entire resource: {res_id}")
     geoserver_directory = get_geoserver_data_dir()
 
     error_response = {
@@ -467,8 +464,8 @@ def register_geoserver_db(res_id, db):
         if json.loads(response.content.decode('utf-8'))[db["verification"]]["enabled"] is False:
             logging.error(f"Verification not enabled for layer: {db['layer_name']}")
             return error_response
-    except:
-        logging.error(f"Error checking verification for layer: {db['layer_name']}")
+    except Exception as e:
+        logging.error(f"Error checking verification for layer {db['layer_name']}: {e}")
         return error_response
 
     bbox = json.loads(response.content)[db["verification"]]["nativeBoundingBox"]
@@ -477,7 +474,7 @@ def register_geoserver_db(res_id, db):
     response = requests.put(rest_url, headers=headers, auth=geoserver_auth, data=data)
 
     if response.status_code != 200:
-        logging.error(f"Error attempting to put layer data at {rest_url}")
+        logging.error(f"Error attempting to put layer data at {rest_url}: {response}")
         return error_response
 
     if db["layer_type"] == "GeographicRaster":
@@ -518,7 +515,7 @@ def register_geoserver_db(res_id, db):
         except Exception as e:
             pass
 
-    logger.info(f"Successfully registered GeoServer layer for resource: {res_id}")
+    logger.info(f"Successfully registered GeoServer layer: {db}")
     add_string = ""
     if bbox.get("crs", None):
         add_string = f"&srs={bbox['crs']}"
@@ -530,7 +527,7 @@ def unregister_geoserver_db(res_id, db):
     Removes a GeoServer layer
     """
 
-    logger.info(f"Unregistering GeoServer layer for resource: {res_id}")
+    logger.info(f"Unregistering GeoServer layer: {db}")
     geoserver_namespace = settings.DATA_SERVICES.get("geoserver", {}).get('NAMESPACE')
     geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
     geoserver_user = settings.DATA_SERVICES.get("geoserver", {}).get('USER')
@@ -556,7 +553,12 @@ def unregister_geoserver_db(res_id, db):
     else:
         response = None
 
+    remove_copied_files_from_geoserver(res_id, db)
+
     logger.info(f"Successfully unregistered GeoServer layer for resource: {res_id}")
+
+    # TODO: ideally we "inform" HS that the registration failed
+    # This is called from an async task, so we can't return a meaningful response to HS
     return response
 
 
@@ -604,6 +606,7 @@ def get_layer_style(max_value, min_value, ndv_value, layer_id):
 
 
 def get_list_of_public_geo_resources():
+    logger.info("Getting list of public geospatial resources")
     hydroshare_url = "/".join(settings.HYDROSHARE_URL.split("/")[:-1])
     types = ["Geographic Feature (ESRI Shapefiles)", "Geographic Raster"]
     # replace spaces with + for the query string
