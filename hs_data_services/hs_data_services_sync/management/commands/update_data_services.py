@@ -4,7 +4,7 @@ from hs_data_services_sync.utilities import get_list_of_public_geo_resources
 
 
 class Command(BaseCommand):
-    help = "Copy resource files from HydroShare to geoserver storage"
+    help = "Update data services for a resource or all public resources"
 
     def add_arguments(self, parser):
         parser.add_argument('resource_ids', nargs='*', type=str)
@@ -13,20 +13,17 @@ class Command(BaseCommand):
         resource_ids = options['resource_ids']
         if len(resource_ids) > 0:
             for resource_id in resource_ids:
-                print(f"Copying files from resource: {resource_id}")
-                result = self.copy_files(resource_id)
+                print(f"Updating services for resource: {resource_id}")
+                result = tasks.update_data_services_task(resource_id)
                 print(result)
         else:
             resources = get_list_of_public_geo_resources()
             num_resources = len(resources)
-            print(f"Copying files from {num_resources} resources")
+            print(f"Updating resources for {num_resources} resources")
             counter = 1
             for res_id in resources:
-                print(f"{counter}/{num_resources} - Copying files from resource: {res_id}")
-                result = self.copy_files(res_id)
+                print(f"{counter}/{num_resources} - Updating services for resource: {res_id}")
+                result = tasks.update_data_services_task(res_id)
                 print(result)
                 counter += 1
-        print("Done copying files")
-
-    def copy_files(self, resource_id):
-        return tasks.update_data_services_task.delay(resource_id)
+        print("Done updating data services")
