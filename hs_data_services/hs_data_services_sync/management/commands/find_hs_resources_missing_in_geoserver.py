@@ -1,17 +1,17 @@
 from django.core.management.base import BaseCommand
-from hs_data_services_sync.utilities import get_list_of_public_geo_resources, get_geoserver_workspaces_list
+from hs_data_services_sync import utilities
 
 
 class Command(BaseCommand):
     help = "Find HS resources that don't have a corresponding workspace in GeoServer"
 
     def handle(self, *args, **options):
-        resources = get_list_of_public_geo_resources()
+        resources = utilities.get_list_of_public_geo_resources()
         num_resources = len(resources)
         print(f"Found {num_resources} resources in HydroShare")
 
         # use the geoserver rest api to get a list of workspaces
-        geoserver_workspaces = get_geoserver_workspaces_list()
+        geoserver_workspaces = utilities.get_geoserver_workspaces_list()
         num_workspaces = len(geoserver_workspaces)
         print(f"Found {num_workspaces} workspaces in GeoServer")
 
@@ -26,4 +26,19 @@ class Command(BaseCommand):
 
         num_missing_resources = len(hs_resources_missing_in_geoserver)
         print(f"Found {num_missing_resources} resources missing in GeoServer")
+
+        # Now list all of the Geo aggregations in the missing resources
+        # So that we can compare them with the layers in GeoServer
+        print("Now listing all Geo aggregations in the missing resources")
+        count = 1
+        for res_id in hs_resources_missing_in_geoserver:
+            print("*" * 80)
+            print(f"{count}/{num_missing_resources} - Resource {res_id}")
+            database_list = utilities.get_database_list(
+                res_id=res_id,
+            )
+            if database_list['access'] == 'public':
+                for db in database_list['geoserver']['register']:
+                    print(f"Resource {res_id} has a Geo aggregation: {db['name']}")
+            count += 1
         print("Done finding resources missing in GeoServer")
