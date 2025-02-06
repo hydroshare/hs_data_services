@@ -62,7 +62,7 @@ def update_data_services(resource_id):
     return response
 
 
-def get_database_list(res_id):
+def get_database_list(res_id, ignore_already_registered=False):
     """
     Gets a list of HydroShare databases on which web services can be published.
     """
@@ -113,7 +113,7 @@ def get_database_list(res_id):
             layer_type = result["content_type"]
             if result["content_type"] == "image/tiff" and layer_ext == "tif":
                 registered_list.append(layer_name.replace("/", " "))
-                if layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
+                if ignore_already_registered or layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
                     db_list["geoserver"]["register"].append(
                         {
                             "layer_name": layer_name,
@@ -128,7 +128,7 @@ def get_database_list(res_id):
                     )
             if result["content_type"] == "application/x-qgis" and layer_ext == "shp":
                 registered_list.append(layer_name.replace("/", " "))
-                if layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
+                if ignore_already_registered or layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
                     # get the associated .shx, .dbf, and .prj files
                     extensions = [".shx", ".dbf", ".prj"]
                     associated_files = []
