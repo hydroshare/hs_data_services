@@ -19,3 +19,4 @@ dependencies:
     - drf-yasg==1.17.0
     - redis==3.5.3
     - future==0.18.2
+    - hsclient==1.0.5
