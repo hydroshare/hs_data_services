@@ -35,11 +35,11 @@ class Command(BaseCommand):
             geoserver_list = utilities.get_geoserver_list(res_id)
             for raster in raster_files:
                 geoserver_rasters = [gs for gs in geoserver_list if gs[1] == 'coveragestores']
-                if (raster["layer_name"], 'coveragestores') not in geoserver_rasters:
+                if (raster["layer_name"].replace("/", " "), 'coveragestores') not in geoserver_rasters:
                     files_missing_for_this_res.append(raster)
             for feature in feature_files:
                 geoserver_features = [gs for gs in geoserver_list if gs[1] == 'datastores']
-                if (feature["layer_name"], 'datastores') not in geoserver_features:
+                if (feature["layer_name"].replace("/", " "), 'datastores') not in geoserver_features:
                     files_missing_for_this_res.append(feature)
             num_files_missing = len(files_missing_for_this_res)
             if num_files_missing > 0:
