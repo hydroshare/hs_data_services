@@ -16,14 +16,12 @@ class Command(BaseCommand):
         print(f"Found {num_workspaces} workspaces in GeoServer")
 
         # every workspace name has a leading "HS-" string that must be removed
-        geoserver_workspaces = [ws_name[3:] for ws_name in geoserver_workspaces]
+        geoserver_workspaces = [ws["name"][3:] for ws in geoserver_workspaces]
 
         hs_resources_missing_in_geoserver = []
         for res_id in resources:
             if res_id not in geoserver_workspaces:
                 hs_resources_missing_in_geoserver.append(res_id)
-                print(f"Resource {res_id} is missing in GeoServer")
-
         num_missing_resources = len(hs_resources_missing_in_geoserver)
         print(f"Found {num_missing_resources} resources missing in GeoServer")
 
@@ -31,6 +29,7 @@ class Command(BaseCommand):
         # So that we can compare them with the layers in GeoServer
         print("Now listing all Geo aggregations in the missing resources")
         count = 1
+        total_missing_layers = 0
         for res_id in hs_resources_missing_in_geoserver:
             print("*" * 80)
             print(f"{count}/{num_missing_resources} - Resource {res_id}")
@@ -38,7 +37,18 @@ class Command(BaseCommand):
                 res_id=res_id,
             )
             if database_list['access'] == 'public':
-                for db in database_list['geoserver']['register']:
-                    print(f"Resource {res_id} has a Geo aggregation: {db['name']}")
+                dbs = database_list['geoserver']['register']
+                num_dbs = len(dbs)
+                if num_dbs == 0:
+                    print(f"Resource {res_id} has no Geo aggregations")
+                else:
+                    print(f"Resource {res_id} has {num_dbs} Geo aggregations")
+                    for db in dbs:
+                        print(f"Resource {res_id} has a {db['layer_type']}: {db['hs_path']}")
+                    total_missing_layers += num_dbs
             count += 1
-        print("Done finding resources missing in GeoServer")
+            print()
+        print("-" * 80)
+        print(f"Found {num_missing_resources} resources missing in GeoServer")
+        print(f"Found {total_missing_layers} Geo aggregations missing in GeoServer")
+        print("Search complete")
