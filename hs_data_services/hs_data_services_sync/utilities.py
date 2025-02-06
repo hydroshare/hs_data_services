@@ -168,6 +168,27 @@ def get_database_list(res_id):
     return db_list
 
 
+def get_geoserver_workspaces_list():
+    """
+    Gets a list of data stores and coverages from a GeoServer workspace.
+    """
+
+    logger.info("Getting geoserver list")
+    workspace_list = []
+
+    geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
+
+    workspace_rest_url = f"{geoserver_url}/workspaces.json"
+    response = requests.get(workspace_rest_url)
+
+    if response.status_code == 200:
+        response_content = json.loads(response.content)
+        if response_content.get("workspaces") and response_content.get("workspaces") != "":
+            workspace_list = response_content["workspaces"]["workspace"]
+
+    return workspace_list
+
+
 def get_geoserver_list(res_id):
     """
     Gets a list of data stores and coverages from a GeoServer workspace.
