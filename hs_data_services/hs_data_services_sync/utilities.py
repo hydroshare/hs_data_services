@@ -62,7 +62,7 @@ def update_data_services(resource_id):
     return response
 
 
-def get_database_list(res_id):
+def get_database_list(res_id, ignore_already_registered=False):
     """
     Gets a list of HydroShare databases on which web services can be published.
     """
@@ -113,7 +113,7 @@ def get_database_list(res_id):
             layer_type = result["content_type"]
             if result["content_type"] == "image/tiff" and layer_ext == "tif":
                 registered_list.append(layer_name.replace("/", " "))
-                if layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
+                if ignore_already_registered or layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
                     db_list["geoserver"]["register"].append(
                         {
                             "layer_name": layer_name,
@@ -128,7 +128,7 @@ def get_database_list(res_id):
                     )
             if result["content_type"] == "application/x-qgis" and layer_ext == "shp":
                 registered_list.append(layer_name.replace("/", " "))
-                if layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
+                if ignore_already_registered or layer_name.replace("/", " ") not in [i[0] for i in geoserver_list]:
                     # get the associated .shx, .dbf, and .prj files
                     extensions = [".shx", ".dbf", ".prj"]
                     associated_files = []
@@ -166,6 +166,27 @@ def get_database_list(res_id):
         db_list["geoserver"]["create_workspace"] = False
 
     return db_list
+
+
+def get_geoserver_workspaces_list():
+    """
+    Gets a list of data stores and coverages from a GeoServer workspace.
+    """
+
+    logger.info("Getting geoserver list")
+    workspace_list = []
+
+    geoserver_url = settings.DATA_SERVICES.get("geoserver", {}).get('URL')
+
+    workspace_rest_url = f"{geoserver_url}/workspaces.json"
+    response = requests.get(workspace_rest_url)
+
+    if response.status_code == 200:
+        response_content = json.loads(response.content)
+        if response_content.get("workspaces") and response_content.get("workspaces") != "":
+            workspace_list = response_content["workspaces"]["workspace"]
+
+    return workspace_list
 
 
 def get_geoserver_list(res_id):
