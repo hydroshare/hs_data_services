@@ -27,16 +27,27 @@ ENV DS_HOME /home/dsuser
 WORKDIR $DS_HOME
 RUN chmod a+rwx $DS_HOME
 
+# Setup Mamba Environment --------------------------------------------------------------------------------#
 
-# Setup Conda Environment --------------------------------------------------------------------------------#
+# Install Miniforge/Mamba for dsuser
+RUN wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" \
+  && chmod +x Miniforge3-$(uname)-$(uname -m).sh \
+  && bash Miniforge3-$(uname)-$(uname -m).sh -b \
+  && rm Miniforge3-$(uname)-$(uname -m).sh
 
-RUN wget https://repo.continuum.io/miniconda/Miniconda2-4.5.12-Linux-x86_64.sh
-RUN bash Miniconda2-4.5.12-Linux-x86_64.sh -b
-RUN rm Miniconda2-4.5.12-Linux-x86_64.sh
+# Update PATH for dsuser
+ENV PATH="/home/dsuser/miniforge3/bin:${PATH}"
 
-ENV PATH /home/dsuser/miniconda2/bin:$PATH
-
-RUN conda update conda
+RUN mamba install -y \
+  --channel conda-forge \
+  --channel anaconda \
+  ipyleaflet \
+  nbconvert \
+  nbformat \
+  jupyter_client \
+  ipympl \
+  pyopenssl \
+  && mamba clean --all -f -y
 
 COPY hs_data_services/environment.yml $DS_HOME/hs_data_services/environment.yml
 RUN sudo chown -R dsuser $DS_HOME/hs_data_services
