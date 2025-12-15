@@ -1,0 +1,114 @@
+services:
+
+  postgres:
+    image: postgres:12.3-alpine
+    environment:
+      - POSTGRES_PASSWORD=default
+      - POSTGRES_DB=hs_data_services
+    volumes:
+      - data_services_volume:/var/lib/postgresql/data/
+    # ports:
+    #   - 5432:5432                                            # Please don't open this port to the outside world.
+    networks:
+      - data_services_network
+    restart: unless-stopped
+
+  geoserver:
+    image: oscarfonts/geoserver:2.24.5
+    environment: 
+      - CUSTOM_UID={{DATA_ACCESS_UID}}                              # A user ID on the host with read permissions to the hydroshare data directory
+      - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}               # e.g. hydroshare.org,hydroshare.io: https://docs.geoserver.org/latest/en/user/security/webadmin/csrf.html
+      - CATALINA_OPTS=-server -Djava.awt.headless=true -Xms2g -Xmx10g -XX:NewSize=48m -DGEOSERVER_DATA_DIR=/var/local/geoserver
+      # - GEOSERVER_CORS_ALLOWED_ORIGINS=*
+      # https://github.com/oscarfonts/docker-geoserver/blob/master/2.24.1/Dockerfile#L35-L37
+      # https://docs.geoserver.org/main/en/user/production/container.html
+    volumes:
+      - geoserver_volume:/var/local/geoserver
+      - ./conf/geoserver/geoserver.sh:/usr/local/bin/start.sh  # Overwrite the default startup script to allow anonymous GET access
+      # must be kept in sync with GEOSERVER_DATA_DIR in local_settings.py
+      - ./geoserver_resources:/geoserver_resources:ro
+      # - ./conf/geoserver/setenv.sh:/usr/local/tomcat/bin/setenv.sh # Mount custom JVM variables, disabled in favor of CATALINA_OPTS above
+    networks:
+      - data_services_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:6.0.4-alpine
+    networks:
+      - data_services_network
+    restart: unless-stopped
+
+  flower:  
+    image: mher/flower:0.9.5
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=8040
+      - FLOWER_URL_PREFIX=flower
+    networks:
+      - data_services_network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  gunicorn:
+    build: .
+    command: /usr/bin/supervisord -c /home/dsuser/conf/gunicorn/gunicorn.conf
+    volumes:
+      - static_volume:/static                                  # Static files will be stored in a docker volume.
+    networks:
+      - data_services_network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  celery-worker:
+    build: .
+    command: /usr/bin/supervisord -c /home/dsuser/conf/celery-worker/celery_worker.conf
+    networks:
+      - data_services_network
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./geoserver_resources:/geoserver_resources
+    restart: unless-stopped
+
+  celery-beat:
+    build: .
+    command: /usr/bin/supervisord -c /home/dsuser/conf/celery-beat/celery_beat.conf
+    networks:
+      - data_services_network
+    depends_on:
+      - redis
+      - celery-worker
+      - postgres
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.19
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - static_volume:/static                                  # Static files will be stored in a docker volume.
+      #- /opt/hs-certs:/opt/hs-certs                           # Used to configure SSL if available.
+      - ./conf/nginx/custom_404.html:/usr/share/nginx/html/custom_404.html
+    networks:
+      - data_services_network
+    depends_on:
+      - gunicorn
+      - geoserver
+      - flower
+    restart: unless-stopped
+
+
+networks:
+  data_services_network:
+    driver: bridge
+
+
+volumes:
+  data_services_volume:
+  geoserver_volume:
+  static_volume:

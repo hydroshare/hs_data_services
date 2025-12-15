@@ -11,6 +11,16 @@ These instructions will help you install and run this application in a productio
 ##### Docker:
 * [Install Docker Engine](https://docs.docker.com/install/)
 
+### Running for local-dev
+
+```console
+git clone https://github.com/hydroshare/hs_data_services.git`
+# warning, this will overwrite your local settings
+make up
+```
+Now do all of the [Post-Installation steps](#post-installation-steps)!
+
+
 ### Installing
 
 ##### Edit Django settings:

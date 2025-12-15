@@ -4,3 +4,4 @@ __pycache__/
 local_settings.py
 .DS_Store
 *.pyc
+*local_settings.py.bak*
