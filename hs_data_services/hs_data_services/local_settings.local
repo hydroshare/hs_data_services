@@ -19,7 +19,7 @@ PROXY_BASE_URL = "http://localhost/his"
 CELERY_BROKER_URL = "redis://redis:6379/0"
 CELERY_BEAT_SCHEDULE = {}
 HYDROSHARE_URL = (
-    "http://localhost/hsapi"
+    "http://localhost:8080/hsapi"
 )
 DATA_SERVICES = {
     'geoserver': {

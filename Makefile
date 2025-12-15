@@ -1,6 +1,8 @@
 .DEFAULT_GOAL := all
 .PHONY: up
 up:
+	# spin down the hs project nginx server if it's running to free up port 80
+	docker stop nginx
 	mv hs_data_services/hs_data_services/local_settings.py hs_data_services/hs_data_services/local_settings.py.bak.$(shell date +%s) || true
 	cp hs_data_services/hs_data_services/local_settings.local hs_data_services/hs_data_services/local_settings.py
 	docker-compose -f local-dev.yml up -d --build
@@ -8,3 +10,4 @@ up:
 .PHONY: down
 down:
 	docker-compose -f local-dev.yml down
+	docker start nginx

@@ -13,12 +13,23 @@ These instructions will help you install and run this application in a productio
 
 ### Running for local-dev
 
+Assumes that you have hydroshare running locally. If not, use the [local-dev-first-start-only.sh](https://github.com/hydroshare/hydroshare/blob/develop/local-dev-first-start-only.sh) to start the stack.
+
+The Hydroshare stack has an nginx proxy that runs locally on your port 80.
+So does this project.
+Because both can't be bound to the same port simultaneously, the `make up` command here will temporarily spin down the HS proxy.
+
 ```console
 git clone https://github.com/hydroshare/hs_data_services.git`
 # warning, this will overwrite your local settings
 make up
+chmod +x configure_for_local.sh
+./configure_for_local.sh
 ```
-Now do all of the [Post-Installation steps](#post-installation-steps)!
+
+The [configure_for_local.sh](./configure_for_local.sh) script will run you through the steps to connect your local HS with the local HIS middleware.
+
+Alternatively, you can do all of the [Post-Installation steps](#post-installation-steps) manually!
 
 
 ### Installing
