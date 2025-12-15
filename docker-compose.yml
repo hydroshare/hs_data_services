@@ -19,7 +19,7 @@ services:
   geoserver:
     image: oscarfonts/geoserver:2.24.5
     environment: 
-      - CUSTOM_UID={{IRODS_ACCESS_UID}}                              # A user ID on the host with read permissions to the iRODS directory
+      - CUSTOM_UID={{DATA_ACCESS_UID}}                              # A user ID on the host with read permissions to the hydroshare data directory
       - GEOSERVER_CSRF_WHITELIST={{HYDROSHARE_DOMAIN}}               # e.g. hydroshare.org,hydroshare.io: https://docs.geoserver.org/latest/en/user/security/webadmin/csrf.html
       - CATALINA_OPTS=-server -Djava.awt.headless=true -Xms2g -Xmx10g -XX:NewSize=48m -DGEOSERVER_DATA_DIR=/var/local/geoserver
       # - GEOSERVER_CORS_ALLOWED_ORIGINS=*

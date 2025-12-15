@@ -32,7 +32,7 @@ Edit the following settings in local_settings.py:
 
 Edit the following settings in hs_data_services/docker-compose.yml
 
-* {{IRODS_ACCESS_UID}}      - The UID of a user on the host system with iRODS read access.
+* {{DATA_ACCESS_UID}}      - The UID of a user on the host system with hydroshare data read access.
 * {{HYDROSHARE_DOMAIN}}     - The domain for the connected HydroShare instance e.g. 'hydroshare.org'
 
 
