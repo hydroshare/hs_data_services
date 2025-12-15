@@ -20,7 +20,7 @@ So does this project.
 Because both can't be bound to the same port simultaneously, the `make up` command here will temporarily spin down the HS proxy.
 
 ```console
-git clone https://github.com/hydroshare/hs_data_services.git`
+git clone https://github.com/hydroshare/hs_data_services.git
 # warning, this will overwrite your local settings
 make up
 chmod +x configure_for_local.sh
