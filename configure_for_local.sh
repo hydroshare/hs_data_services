@@ -141,10 +141,15 @@ grep -v -E "^(HSWS_URL|HSWS_API_TOKEN|HSWS_TIMEOUT|HSWS_ACTIVATED)" "$SETTINGS_F
 cat >> "$TEMP_FILE" << EOF
 
 # HydroShare Web Services Configuration
-HSWS_URL = 'http://127.0.0.1/his/services/update'
+HSWS_URL = 'http://host.docker.internal/his/services/update'
+HSWS_GEOSERVER_URL = 'http://host.docker.internal/geoserver'
+HSWS_PUBLISH_URLS = False
 HSWS_API_TOKEN = '$API_TOKEN'
 HSWS_TIMEOUT = 10
 HSWS_ACTIVATED = True
+HSWS_GEOSERVER_ESCAPE = {
+    '/': ' '
+}
 EOF
 
 # Replace the original file
@@ -158,10 +163,10 @@ echo "Step 3: Configuring GeoServer"
 echo "----------------------------"
 
 echo "Please configure GeoServer:"
-echo "1. Go to http://127.0.0.1/geoserver/web"
+echo "1. Go to http://host.docker.internal/geoserver/web"
 echo "2. Log in with username: admin, password: geoserver"
-echo "3. Go to Global Settings: http://127.0.0.1/geoserver/web/wicket/bookmarkable/org.geoserver.web.admin.GlobalSettingsPage?4&filter=false"
-echo "4. Change 'Proxy Base URL' to: http://127.0.0.1/geoserver"
+echo "3. Go to Global Settings: http://host.docker.internal/geoserver/web/wicket/bookmarkable/org.geoserver.web.admin.GlobalSettingsPage?4&filter=false"
+echo "4. Change 'Proxy Base URL' to: http://host.docker.internal/geoserver"
 echo "5. Click 'Save'"
 echo ""
 echo "Note: This is necessary for proper navigation in the GeoServer web interface."
@@ -182,8 +187,8 @@ echo "Important next steps:"
 echo "1. Restart HydroShare services if needed."
 echo ""
 echo "2. Test the full setup:"
-echo "   - HIS Django admin: http://127.0.0.1/his/admin"
-echo "   - GeoServer: http://127.0.0.1/geoserver/web"
+echo "   - HIS Django admin: http://host.docker.internal/his/admin"
+echo "   - GeoServer: http://host.docker.internal/geoserver/web"
 echo "   - HydroShare at: http://localhost:8000"
 echo ""
 echo "3. If you need to recreate the token later:"
